@@ -49,6 +49,12 @@ class GameConsumer(AsyncWebsocketConsumer):
             await self.prendre_2_jetons(couleur)
 
     async def prendre_2_jetons(self, couleur):
+
+
+        if couleur == "jaune":
+            await self.send(text_data=json.dumps({"error": "Impossible de prendre un jeton jaune avec cette action."}))
+            return
+    
         joueur = await self.get_joueur_partie(self.user, self.nom_partie)
         jeton_disponible = await self.get_jeton_disponible(self.nom_partie, couleur)
 
@@ -70,12 +76,13 @@ class GameConsumer(AsyncWebsocketConsumer):
                         "joueur": self.user.username,
                     }
                 )
+                await self.passer_au_joueur_suivant()
             else:
                 await self.send(text_data=json.dumps({"error": f"Pas assez de jetons {couleur} pour en prendre 2."}))
         else:
             await self.send(text_data=json.dumps({"error": f"Il faut au moins 4 jetons {couleur} sur le plateau pour prendre 2."}))
 
-        await self.passer_au_joueur_suivant()
+       
 
 
 
