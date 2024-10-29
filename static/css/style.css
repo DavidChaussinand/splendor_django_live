@@ -58,6 +58,7 @@ footer {
 .jeton.blanc { background-color: white; color: black; }
 .jeton.rouge { background-color: red; }
 .jeton.vert { background-color: green; }
+.jeton.bleu { background-color: blue; }
 .jeton.jaune { background-color: yellow; color: black; }
 
 .joueur {

@@ -1,13 +1,11 @@
 document.addEventListener("DOMContentLoaded", function () {
-    let selectedColor = null;
+    let selectedColors = new Set();
     console.log("Partie ID:", partieId);
-    
-    
-
 
     // Afficher les valeurs pour débogage
     console.log('monNomUtilisateur:', monNomUtilisateur);
     console.log('currentPlayer:', currentPlayer);
+
     // Initialisation de la connexion WebSocket
     const gameSocket = new WebSocket(
         "ws://" + window.location.host + "/ws/game/" + nom_partie + "/"
@@ -16,51 +14,32 @@ document.addEventListener("DOMContentLoaded", function () {
     // Fonction pour activer/désactiver le bouton en fonction du tour
     function updateActionButtons(isMyTurn) {
         const prendreDeuxJetonsButton = document.getElementById("prendre-deux-jetons");
-        if (prendreDeuxJetonsButton) {
-            prendreDeuxJetonsButton.disabled = !isMyTurn;
-        }
+        const prendreTroisJetonsButton = document.getElementById("prendre-trois-jetons");
+        
+        if (prendreDeuxJetonsButton) prendreDeuxJetonsButton.disabled = !isMyTurn;
+        if (prendreTroisJetonsButton) prendreTroisJetonsButton.disabled = !isMyTurn;
     }
-
 
     // Fonction pour afficher un message dans le conteneur
     function afficherMessage(type, texte) {
         const messageContainer = document.getElementById('message-container');
         if (!messageContainer) return;
 
-        // Créer une div pour le message
         const messageDiv = document.createElement('div');
-        messageDiv.classList.add('alert');
-
-        // Ajouter une classe en fonction du type de message
-        if (type === 'error') {
-            messageDiv.classList.add('alert-danger');
-        } else if (type === 'success') {
-            messageDiv.classList.add('alert-success');
-        } else if (type === 'info') {
-            messageDiv.classList.add('alert-info');
-        }
-
-        // Insérer le texte du message
+        messageDiv.classList.add('alert', `alert-${type === 'error' ? 'danger' : 'success'}`);
         messageDiv.textContent = texte;
-
-        // Ajouter le message au conteneur
         messageContainer.appendChild(messageDiv);
 
-        // Supprimer le message après 2 secondes
-        setTimeout(() => {
-            messageContainer.removeChild(messageDiv);
-        }, 2000);
+        setTimeout(() => messageContainer.removeChild(messageDiv), 2000);
     }
 
+    // Fonction pour gérer la réception des messages du serveur
 
-
-// Fonction pour gérer la réception des messages du serveur
     gameSocket.onmessage = function (e) {
         const data = JSON.parse(e.data);
         console.log('Données reçues :', data);
 
         if (data.error) {
-            // Afficher l'erreur dans le conteneur
             afficherMessage('error', data.error);
             return;
         }
@@ -68,21 +47,37 @@ document.addEventListener("DOMContentLoaded", function () {
         if (data.message) {
             afficherMessage('info', data.message);
 
-            // Mise à jour du plateau
-            if (data.couleur) {
+            // Mise à jour du plateau et des jetons du joueur
+            if (data.couleurs) {
+                // Si plusieurs couleurs sont reçues (prise de 3 jetons)
+                data.couleurs.forEach(couleur => {
+                    // Mise à jour du plateau
+                    const plateauJetonElement = document.querySelector(`#plateau-${couleur}-quantite span`);
+                    if (plateauJetonElement) {
+                        plateauJetonElement.innerText = parseInt(plateauJetonElement.innerText) - 1;
+                    }
+
+                    // Mise à jour des jetons du joueur concerné
+                    if (data.joueur) {
+                        const joueurJetonElement = document.querySelector(`#joueur-jetons-${data.joueur}-${couleur} span`);
+                        if (joueurJetonElement) {
+                            joueurJetonElement.innerText = parseInt(joueurJetonElement.innerText) + 1;
+                        }
+                    }
+                });
+            } else if (data.couleur) {
+                // Si une seule couleur est reçue (prise de 2 jetons)
                 const plateauJetonElement = document.querySelector(`#plateau-${data.couleur}-quantite span`);
                 if (plateauJetonElement) {
                     plateauJetonElement.innerText = data.quantite_restant;
                 }
-            }
 
-            // Mise à jour des jetons du joueur concerné
-            if (data.joueur && data.couleur) {
-                const joueurJetonElement = document.querySelector(`#joueur-jetons-${data.joueur}-${data.couleur} span`);
-                if (joueurJetonElement) {
-                    joueurJetonElement.innerText = parseInt(joueurJetonElement.innerText) + 2;
-                } else {
-                    console.log('Élément joueurJetonElement non trouvé pour :', `#joueur-jetons-${data.joueur}-${data.couleur} span`);
+                // Mise à jour des jetons du joueur concerné
+                if (data.joueur) {
+                    const joueurJetonElement = document.querySelector(`#joueur-jetons-${data.joueur}-${data.couleur} span`);
+                    if (joueurJetonElement) {
+                        joueurJetonElement.innerText = parseInt(joueurJetonElement.innerText) + 2;
+                    }
                 }
             }
         }
@@ -108,34 +103,60 @@ document.addEventListener("DOMContentLoaded", function () {
         console.error("Socket fermé de manière inattendue.");
     };
 
-    // Fonction pour gérer la sélection d'un jeton
+    // Fonction pour gérer la sélection de plusieurs jetons
     function handleJetonClick(event) {
         const jeton = event.target.closest(".jeton");
         if (!jeton) return;
 
-        // Enregistrer la couleur sélectionnée
-        selectedColor = jeton.getAttribute("data-color");
+        const color = jeton.getAttribute("data-color");
 
-        // Ajouter un effet visuel pour montrer le jeton sélectionné
-        document.querySelectorAll(".jeton").forEach(j => j.classList.remove("selected"));
-        jeton.classList.add("selected");
+        if (selectedColors.has(color)) {
+            selectedColors.delete(color);
+            jeton.classList.remove("selected");
+        } else if (selectedColors.size < 3) {
+            selectedColors.add(color);
+            jeton.classList.add("selected");
+        }
+
+        // Limite la sélection à 3 couleurs maximum
+        if (selectedColors.size > 3) {
+            const firstSelected = Array.from(selectedColors)[0];
+            selectedColors.delete(firstSelected);
+            document.querySelector(`.jeton[data-color="${firstSelected}"]`).classList.remove("selected");
+        }
     }
 
     // Fonction pour envoyer la demande de prise de deux jetons au serveur
     function prendre2Jetons() {
-        if (!selectedColor) {
-            alert("Veuillez d'abord sélectionner une couleur de jeton.");
+        if (selectedColors.size !== 1) {
+            afficherMessage('error', "Veuillez sélectionner une seule couleur.");
             return;
         }
 
-        // Envoyer l'action via WebSocket
+        const couleur = Array.from(selectedColors)[0];
         gameSocket.send(JSON.stringify({
             "action": "prendre_2_jetons",
-            "couleur": selectedColor
+            "couleur": couleur
         }));
 
-        // Réinitialiser la sélection
-        selectedColor = null;
+        selectedColors.clear();
+        document.querySelectorAll(".jeton").forEach(j => j.classList.remove("selected"));
+    }
+
+    // Fonction pour envoyer la demande de prise de trois jetons différents au serveur
+    function prendre3Jetons() {
+        if (selectedColors.size !== 3) {
+            afficherMessage('error', "Veuillez sélectionner trois couleurs différentes.");
+            return;
+        }
+
+        const couleurs = Array.from(selectedColors);
+        gameSocket.send(JSON.stringify({
+            "action": "prendre_3_jetons",
+            "couleurs": couleurs
+        }));
+
+        selectedColors.clear();
         document.querySelectorAll(".jeton").forEach(j => j.classList.remove("selected"));
     }
 
@@ -144,13 +165,18 @@ document.addEventListener("DOMContentLoaded", function () {
         jeton.addEventListener("click", handleJetonClick);
     });
 
-    // Gestionnaire d'événement pour le bouton "Prendre deux jetons"
+    // Gestionnaires d'événements pour les boutons
     const prendreDeuxJetonsButton = document.getElementById("prendre-deux-jetons");
     if (prendreDeuxJetonsButton) {
         prendreDeuxJetonsButton.addEventListener("click", prendre2Jetons);
     }
 
-    // Désactive le bouton si ce n'est pas le tour de l'utilisateur actuel
+    const prendreTroisJetonsButton = document.getElementById("prendre-trois-jetons");
+    if (prendreTroisJetonsButton) {
+        prendreTroisJetonsButton.addEventListener("click", prendre3Jetons);
+    }
+
+    // Désactiver les boutons si ce n'est pas le tour de l'utilisateur actuel
     const initialIsMyTurn = currentPlayer === monNomUtilisateur;
     updateActionButtons(initialIsMyTurn);
 });

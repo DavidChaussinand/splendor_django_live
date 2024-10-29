@@ -70,7 +70,7 @@ def game_view(request, nombre_joueurs=2):
     adversaire = Joueur.objects.exclude(id=joueur_courant_id).first()
 
     # Récupérer les jetons du joueur courant depuis la session ou initialiser
-    joueur_courant_jetons = request.session.get('joueur_courant_jetons', {color: 0 for color in ["noir", "blanc", "rouge", "vert", "jaune"]})
+    joueur_courant_jetons = request.session.get('joueur_courant_jetons', {color: 0 for color in ["noir","bleue", "blanc", "rouge", "vert", "jaune"]})
     # Idem pour l'adversaire si nécessaire
 
     # Générer le plateau ou le récupérer depuis la session
@@ -166,9 +166,9 @@ def reset_game(request, partie_id):
         
         # Quantité de jetons par couleur en fonction du nombre de joueurs
         couleurs_quantites = (
-            {"noir": 4, "blanc": 4, "rouge": 4, "vert": 4, "jaune": 5} if nombre_joueurs == 2 else
-            {"noir": 5, "blanc": 5, "rouge": 5, "vert": 5, "jaune": 5} if nombre_joueurs == 3 else
-            {"noir": 7, "blanc": 7, "rouge": 7, "vert": 7, "jaune": 5}
+            {"noir": 4,"bleu": 4, "blanc": 4, "rouge": 4, "vert": 4, "jaune": 5} if nombre_joueurs == 2 else
+            {"noir": 5,"bleu": 5,"blanc": 5, "rouge": 5, "vert": 5, "jaune": 5} if nombre_joueurs == 3 else
+            {"noir": 7,"bleu": 7,"blanc": 7, "rouge": 7, "vert": 7, "jaune": 5}
         )
 
         # Mettre à jour les quantités de jetons sur le plateau
@@ -181,7 +181,7 @@ def reset_game(request, partie_id):
         joueurs = JoueurPartie.objects.filter(partie=partie)
         for joueur in joueurs:
             joueur.points_victoire = 0
-            joueur.jetons = {"noir": 0, "blanc": 0, "rouge": 0, "vert": 0, "jaune": 0}
+            joueur.jetons = {"noir": 0,"bleu":0, "blanc": 0, "rouge": 0, "vert": 0, "jaune": 0}
             joueur.save()
 
         # Construire la réponse JSON avec l’état réinitialisé
@@ -227,7 +227,7 @@ class CreerPartieView(LoginRequiredMixin, View):
 
         partie = Partie.objects.create(nom=nom_partie, nombre_joueurs=nombre_joueurs,joueur_courant=request.user)
         partie.joueurs.add(request.user)  # Ajouter le créateur de la partie
-        JoueurPartie.objects.create(joueur=request.user, partie=partie, jetons={"noir": 0, "blanc": 0, "rouge": 0, "vert": 0, "jaune": 0})
+        JoueurPartie.objects.create(joueur=request.user, partie=partie, jetons={"noir": 0,"bleu":0, "blanc": 0, "rouge": 0, "vert": 0, "jaune": 0})
 
 
 
@@ -236,11 +236,11 @@ class CreerPartieView(LoginRequiredMixin, View):
 
         # Initialiser les jetons en fonction du nombre de joueurs
         if nombre_joueurs == 2:
-            couleurs_quantites = {"noir": 4, "blanc": 4, "rouge": 4, "vert": 4, "jaune": 5}
+            couleurs_quantites = {"noir": 4,"bleu":4, "blanc": 4, "rouge": 4, "vert": 4, "jaune": 5}
         elif nombre_joueurs == 3:
-            couleurs_quantites = {"noir": 5, "blanc": 5, "rouge": 5, "vert": 5, "jaune": 5}
+            couleurs_quantites = {"noir": 5,"bleu":5, "blanc": 5, "rouge": 5, "vert": 5, "jaune": 5}
         elif nombre_joueurs == 4:
-            couleurs_quantites = {"noir": 7, "blanc": 7, "rouge": 7, "vert": 7, "jaune": 5}
+            couleurs_quantites = {"noir": 7,"bleu":7, "blanc": 7, "rouge": 7, "vert": 7, "jaune": 5}
         else:
             couleurs_quantites = {}  # Vous pouvez gérer les cas inattendus
 
@@ -272,7 +272,7 @@ class RejoindrePartieView(LoginRequiredMixin, View):
             JoueurPartie.objects.get_or_create(
                 joueur=request.user,
                 partie=partie,
-                defaults={'points_victoire': 0, 'jetons': {"noir": 0, "blanc": 0, "rouge": 0, "vert": 0, "jaune": 0}}
+                defaults={'points_victoire': 0, 'jetons': {"noir": 0,"bleu":0, "blanc": 0, "rouge": 0, "vert": 0, "jaune": 0}}
             )
 
         return redirect('game_view', nom_partie=partie.nom)
@@ -292,7 +292,7 @@ class GameView(LoginRequiredMixin, View):
         joueur_courant, created = JoueurPartie.objects.get_or_create(
             joueur=request.user,
             partie=partie,
-            defaults={'points_victoire': 0, 'jetons': {"noir": 0, "blanc": 0, "rouge": 0, "vert": 0, "jaune": 0}}
+            defaults={'points_victoire': 0, 'jetons': {"noir": 0,"bleu":0, "blanc": 0, "rouge": 0, "vert": 0, "jaune": 0}}
         )
 
         # Récupérer le plateau associé à la partie et les jetons du plateau
