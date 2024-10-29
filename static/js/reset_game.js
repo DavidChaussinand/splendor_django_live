@@ -1,3 +1,5 @@
+// reset_game.js
+
 document.addEventListener("DOMContentLoaded", function () {
     const resetButton = document.getElementById("reset-game");
     let isResetting = false;
