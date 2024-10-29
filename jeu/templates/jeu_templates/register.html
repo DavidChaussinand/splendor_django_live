@@ -1,0 +1,15 @@
+{% extends 'jeu_templates/base.html' %}
+
+{% block title %}Inscription{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="text-center">Créer un compte</h2>
+
+    <form method="post" class="mt-4">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">S'inscrire</button>
+    </form>
+</div>
+{% endblock %}

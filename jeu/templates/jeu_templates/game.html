@@ -1,0 +1,84 @@
+{% extends 'jeu_templates/base.html' %}
+{% load static %}
+
+{% block title %}Partie : {{ nom_partie }}{% endblock %}
+
+{% block content %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}">
+
+    <h2 class="display-4">Partie : {{ nom_partie }}</h2>
+    <p class="lead">Préparez-vous à jouer !</p>
+    <p>Partie ID : {{ partie.id }}</p>
+    <p>Reset game URL : {% url 'reset_game' partie.id %}</p>
+
+    <p id="current_player">C'est au tour de : {{ current_player.username }}</p>
+
+    
+    <!-- Bouton de réinitialisation de la partie -->
+    
+    <button id="reset-game" data-url="{% url 'reset_game' partie.id %}">Réinitialiser la partie</button>
+    
+  
+
+
+
+    <!-- Affichage du nombre de joueurs -->
+    <div>
+        <h3>Nombre de joueurs : {{ partie.joueurs.count }} / {{ partie.nombre_joueurs }}</h3>
+    </div>
+
+
+    <div class="plateau">
+        <div class="jetons">
+            {% for couleur, quantite in plateau.items %}
+                <div id="plateau-{{ couleur }}-quantite" class="jeton {{ couleur }}" data-color="{{ couleur }}">
+                    {{ couleur }}: <span>{{ quantite }}</span>
+                </div>
+            {% endfor %}
+        </div>
+        <button id="prendre-deux-jetons">Prendre 2 jetons de la couleur sélectionnée</button>
+        <div class="clear"></div>
+    </div>
+
+    <!-- Informations des joueurs -->
+    <div class="joueur">
+        <h2>{{ joueur_courant.joueur.username }} (Vous)</h2>
+        <p>Points de victoire : {{ joueur_courant.points_victoire }}</p>
+        <h3>Vos jetons :</h3>
+        <ul>
+            {% for couleur, quantite in joueur_courant.jetons.items %}
+                <li id="joueur-jetons-{{ joueur_courant.joueur.username }}-{{ couleur }}">{{ couleur }} : <span>{{ quantite }}</span></li>
+            {% endfor %}
+        </ul>
+    </div>
+    
+    {% for adversaire in adversaires %}
+    <div class="joueur">
+        <h2>{{ adversaire.joueur.username }}</h2>
+        <p>Points de victoire : {{ adversaire.points_victoire }}</p>
+        <h3>Ses jetons :</h3>
+        <ul>
+            {% for couleur, quantite in adversaire.jetons.items %}
+                <li id="joueur-jetons-{{ adversaire.joueur.username }}-{{ couleur }}">{{ couleur }} : <span>{{ quantite }}</span></li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endfor %}
+    
+{% endblock %}
+
+{% block scripts %}
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+
+    <script src="{% static 'js/prendre_jetons.js' %}"></script>
+    <script>
+        const nom_partie = "{{ nom_partie|escapejs }}";
+        const partieId = "{{ partie.id }}";
+        let monNomUtilisateur = "{{ request.user.username|escapejs }}";
+        let currentPlayer = "{{ current_player.username|escapejs }}";  // Assurez-vous que `partie` est bien dans le contexte
+        console.log("Partie ID:", partieId);  // Pour vérifier que l'ID est bien passé
+    </script>
+
+    <script src="{% static 'js/game.js' %}"></script>
+    <script src="{% static 'js/reset_game.js' %}"></script>
+{% endblock %}
