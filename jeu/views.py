@@ -315,3 +315,6 @@ class GameView(LoginRequiredMixin, View):
             'current_player': current_player,  # Nouveau champ dans le contexte
         }
         return render(request, 'jeu_templates/game.html', context)
+    
+
+

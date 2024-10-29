@@ -21,61 +21,87 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+
+    // Fonction pour afficher un message dans le conteneur
+    function afficherMessage(type, texte) {
+        const messageContainer = document.getElementById('message-container');
+        if (!messageContainer) return;
+
+        // Créer une div pour le message
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add('alert');
+
+        // Ajouter une classe en fonction du type de message
+        if (type === 'error') {
+            messageDiv.classList.add('alert-danger');
+        } else if (type === 'success') {
+            messageDiv.classList.add('alert-success');
+        } else if (type === 'info') {
+            messageDiv.classList.add('alert-info');
+        }
+
+        // Insérer le texte du message
+        messageDiv.textContent = texte;
+
+        // Ajouter le message au conteneur
+        messageContainer.appendChild(messageDiv);
+
+        // Supprimer le message après 2 secondes
+        setTimeout(() => {
+            messageContainer.removeChild(messageDiv);
+        }, 2000);
+    }
+
+
+
 // Fonction pour gérer la réception des messages du serveur
     gameSocket.onmessage = function (e) {
         const data = JSON.parse(e.data);
         console.log('Données reçues :', data);
 
         if (data.error) {
-            // Remplacez alert par une notification non bloquante
-            Swal.fire({
-                icon: 'error',
-                title: 'Erreur',
-                text: data.error,
-            });
+            // Afficher l'erreur dans le conteneur
+            afficherMessage('error', data.error);
             return;
         }
 
-            if (data.message) {
-                Swal.fire({
-                    icon: 'info',
-                    title: 'Information',
-                    text: data.message,
-                });
+        if (data.message) {
+            afficherMessage('info', data.message);
 
-                // Mise à jour du plateau
-                if (data.couleur) {
-                    const plateauJetonElement = document.querySelector(`#plateau-${data.couleur}-quantite span`);
-                    if (plateauJetonElement) {
-                        plateauJetonElement.innerText = data.quantite_restant;
-                    }
-                }
-
-                // Mise à jour des jetons du joueur concerné
-                if (data.joueur && data.couleur) {
-                    const joueurJetonElement = document.querySelector(`#joueur-jetons-${data.joueur}-${data.couleur} span`);
-                    if (joueurJetonElement) {
-                        joueurJetonElement.innerText = parseInt(joueurJetonElement.innerText) + 2;
-                    } else {
-                        console.log('Élément joueurJetonElement non trouvé pour :', `#joueur-jetons-${data.joueur}-${data.couleur} span`);
-                    }
+            // Mise à jour du plateau
+            if (data.couleur) {
+                const plateauJetonElement = document.querySelector(`#plateau-${data.couleur}-quantite span`);
+                if (plateauJetonElement) {
+                    plateauJetonElement.innerText = data.quantite_restant;
                 }
             }
 
-            // Mise à jour du joueur courant
-            if (data.type === "tour_update") {
-                console.log("Message 'tour_update' reçu :", data);
-                const joueurTourElement = document.getElementById("current_player");
-                if (joueurTourElement) {
-                    joueurTourElement.innerText = "C'est au tour de : " + data.current_player;
+            // Mise à jour des jetons du joueur concerné
+            if (data.joueur && data.couleur) {
+                const joueurJetonElement = document.querySelector(`#joueur-jetons-${data.joueur}-${data.couleur} span`);
+                if (joueurJetonElement) {
+                    joueurJetonElement.innerText = parseInt(joueurJetonElement.innerText) + 2;
+                } else {
+                    console.log('Élément joueurJetonElement non trouvé pour :', `#joueur-jetons-${data.joueur}-${data.couleur} span`);
                 }
-            
-                // Vérifier si c'est le tour de l'utilisateur actuel
-                const isMyTurn = data.current_player === monNomUtilisateur;
-                console.log("Est-ce mon tour ? ", isMyTurn);  // Log pour déboguer
-                updateActionButtons(isMyTurn);
             }
-};
+        }
+
+        // Mise à jour du joueur courant
+        if (data.type === "tour_update") {
+            console.log("Message 'tour_update' reçu :", data);
+            const joueurTourElement = document.getElementById("current_player");
+            if (joueurTourElement) {
+                joueurTourElement.innerText = "C'est au tour de : " + data.current_player;
+            }
+
+            // Vérifier si c'est le tour de l'utilisateur actuel
+            const isMyTurn = data.current_player === monNomUtilisateur;
+            console.log("Est-ce mon tour ? ", isMyTurn);
+            updateActionButtons(isMyTurn);
+        }
+    };
+
 
     // Gestion de la fermeture de la connexion WebSocket
     gameSocket.onclose = function () {
