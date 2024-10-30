@@ -40,6 +40,30 @@
         <button id="prendre-deux-jetons">Prendre 2 jetons de la couleur sélectionnée</button>
         <button id="prendre-trois-jetons">Prendre 3 jetons différents</button>
         <div class="clear"></div>
+        <!-- Affichage des cartes du plateau -->
+        <div class="cartes-plateau row">
+            {% for carte in cartes_plateau %}
+                <div class="col-md-3 mb-4">
+                    <div class="carte card h-100">
+                        <img src="{% static carte.image_path %}" class="card-img-top" alt="Image de la carte">
+                        <div class="card-body">
+                            <h5 class="card-title">Niveau {{ carte.niveau }}</h5>
+                            <h5 class="card-title">id {{ carte.id }}</h5>
+                            <p class="card-text">
+                                <strong>Bonus :</strong> {{ carte.bonus|capfirst }}<br>
+                                <strong>Points de victoire :</strong> {{ carte.points_victoire }}
+                            </p>
+                            <p class="card-text"><strong>Coût :</strong></p>
+                            <ul class="list-unstyled">
+                                {% for couleur, quantite in carte.get_cout.items %}
+                                    <li>{{ couleur|capfirst }} : {{ quantite }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
     </div>
 
     <!-- Informations des joueurs -->
@@ -71,12 +95,12 @@
 
 {% block scripts %}
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
-    <script src="{% static 'js/reset_game.js' %}"></script>
+    <script type="module" src="{% static 'js/reset_game.js' %}"></script>
     <script>
         const nom_partie = "{{ nom_partie|escapejs }}";
         const monNomUtilisateur = "{{ request.user.username|escapejs }}";
         const currentPlayer = "{{ current_player.username|escapejs }}";
     </script>
-    <script src="{% static 'js/main.js' %}"></script>
+    <script type="module" src="{% static 'js/main.js' %}"></script>
 
 {% endblock %}

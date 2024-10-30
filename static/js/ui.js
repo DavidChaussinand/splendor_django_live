@@ -59,3 +59,34 @@ export function updateCurrentPlayer(data) {
         joueurTourElement.innerText = "C'est au tour de : " + data.current_player;
     }
 }
+
+
+export function updateCartesDisplay(cartes) {
+    const cartesContainer = document.querySelector('.cartes-plateau');
+    cartesContainer.innerHTML = '';  // Effacer les cartes actuelles
+
+    cartes.forEach(carte => {
+        const carteDiv = document.createElement('div');
+        carteDiv.classList.add('col-md-3', 'mb-4');
+        carteDiv.innerHTML = `
+            <div class="carte card h-100">
+                <img src="/static/${carte.image}" class="card-img-top" alt="Image de la carte">
+                <div class="card-body">
+                    <h5 class="card-title">Niveau ${carte.niveau}</h5>
+                    <h5 class="card-title">ID ${carte.id}</h5>
+                    <p class="card-text">
+                        <strong>Bonus :</strong> ${carte.bonus.charAt(0).toUpperCase() + carte.bonus.slice(1)}<br>
+                        <strong>Points de victoire :</strong> ${carte.points_victoire}
+                    </p>
+                    <p class="card-text"><strong>Coût :</strong></p>
+                    <ul class="list-unstyled">
+                        ${Object.entries(carte.cout).map(([couleur, quantite]) =>
+                            `<li>${couleur.charAt(0).toUpperCase() + couleur.slice(1)} : ${quantite}</li>`
+                        ).join('')}
+                    </ul>
+                </div>
+            </div>
+        `;
+        cartesContainer.appendChild(carteDiv);
+    });
+}

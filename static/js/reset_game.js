@@ -1,4 +1,4 @@
-// reset_game.js
+import { updateCartesDisplay } from './ui.js';
 
 document.addEventListener("DOMContentLoaded", function () {
     const resetButton = document.getElementById("reset-game");
@@ -6,15 +6,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (resetButton) {
         resetButton.addEventListener("click", function (event) {
-            console.log("Reset button clicked");
-            console.trace();
             event.preventDefault();
+
+            // Vérifier et afficher l'état actuel de isResetting pour débogage
+            console.log("Reset button clicked, isResetting:", isResetting);
             
             if (isResetting) return;
             isResetting = true;
             resetButton.disabled = true;
 
-            // Récupère l'URL depuis l'attribut `data-url`
             const resetUrl = resetButton.getAttribute("data-url");
 
             fetch(resetUrl, {
@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 if (data.success) {
                     alert(data.message);
 
-                    // Mise à jour du plateau
+                    // Mise à jour du plateau de jetons
                     for (const [couleur, quantite] of Object.entries(data.plateau)) {
                         const plateauJetonElement = document.querySelector(`#plateau-${couleur}-quantite span`);
                         if (plateauJetonElement) {
@@ -46,19 +46,25 @@ document.addEventListener("DOMContentLoaded", function () {
                             }
                         }
                     }
+
+                    // Mise à jour des cartes affichées
+                    updateCartesDisplay(data.cartes);  
                 } else {
                     alert("Erreur lors de la réinitialisation de la partie.");
                 }
             })
-            .catch(error => console.error("Erreur :", error))
+            .catch(error => {
+                console.error("Erreur :", error);
+                alert("Erreur lors de la réinitialisation de la partie.");
+            })
             .finally(() => {
                 isResetting = false;
                 resetButton.disabled = false;
+                console.log("Final reset, isResetting:", isResetting); // Vérification finale
             });
         });
     }
 
-    // Fonction pour obtenir le token CSRF pour les requêtes POST
     function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {

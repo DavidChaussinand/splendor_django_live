@@ -9,10 +9,12 @@ from .forms import EmailAuthenticationForm
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import authenticate, login
 from .forms import CustomUserCreationForm
-from .models import  Jeton , Partie , Plateau , JoueurPartie
+from .models import  Jeton , Partie , Plateau , JoueurPartie ,Carte
 from .utils import generer_plateau
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
+from random import sample 
+import random
 
 
 from django.http import JsonResponse
@@ -184,15 +186,41 @@ def reset_game(request, partie_id):
             joueur.jetons = {"noir": 0,"bleu":0, "blanc": 0, "rouge": 0, "vert": 0, "jaune": 0}
             joueur.save()
 
+        # Logique de réinitialisation des cartes aléatoires
+        # Supposons que vous souhaitiez afficher 4 cartes au hasard pour chaque niveau
+# Sélectionner aléatoirement des cartes pour le plateau (comme dans creer_partie)
+        plateau.cartes.clear()
+        toutes_les_cartes = list(Carte.objects.all())
+        cartes_plateau = random.sample(toutes_les_cartes, 4)  # Sélectionner 4 cartes aléatoirement
+
+        plateau.cartes.set(cartes_plateau)
+
+        # Si vous avez besoin d'assigner les cartes au plateau, ajoutez le code approprié ici.
+        # Pour l'instant, cette logique construit un ensemble de cartes à afficher.
+
+
         # Construire la réponse JSON avec l’état réinitialisé
         plateau_jetons = {jeton.couleur: jeton.quantite for jeton in plateau.jetons.all()}
         joueur_jetons = {joueur.joueur.username: joueur.jetons for joueur in joueurs}
+        cartes_infos = [
+            {
+                "id": carte.id,
+                "niveau": carte.niveau,
+                "cout": carte.get_cout(),
+                "bonus": carte.bonus,
+                "points_victoire": carte.points_victoire,
+                "image": carte.image_path,  # Utilisez l'URL d'image ici
+                
+            }
+            for carte in cartes_plateau
+        ]
 
         return JsonResponse({
             "success": True,
             "message": "La partie a été réinitialisée.",
             "plateau": plateau_jetons,
             "joueurs": joueur_jetons,
+            "cartes": cartes_infos,
         })
     
     except Exception as e:
@@ -226,6 +254,9 @@ class CreerPartieView(LoginRequiredMixin, View):
             return render(request, 'jeu_templates/creer_partie.html', {'erreur': erreur, 'parties': parties})
 
         partie = Partie.objects.create(nom=nom_partie, nombre_joueurs=nombre_joueurs,joueur_courant=request.user)
+                # Test temporaire du champ 'joueurs'
+        print(partie.joueurs)  # Pour voir si le champ est bien reconnu
+        
         partie.joueurs.add(request.user)  # Ajouter le créateur de la partie
         JoueurPartie.objects.create(joueur=request.user, partie=partie, jetons={"noir": 0,"bleu":0, "blanc": 0, "rouge": 0, "vert": 0, "jaune": 0})
 
@@ -248,9 +279,58 @@ class CreerPartieView(LoginRequiredMixin, View):
         for couleur, quantite in couleurs_quantites.items():
             Jeton.objects.create(couleur=couleur, quantite=quantite, plateau=plateau)
 
+        # Sélectionner aléatoirement des cartes pour le plateau
+        toutes_les_cartes = list(Carte.objects.all())
+        cartes_selectionnees = sample(toutes_les_cartes, 4)  # Sélectionner 4 cartes aléatoirement
+
+        # Associer les cartes au plateau
+        plateau.cartes.set(cartes_selectionnees)
+
         message = "La partie a été créée avec succès."
         parties = Partie.objects.all()
         return render(request, 'jeu_templates/creer_partie.html', {'message': message, 'parties': parties})  
+
+
+class GameView(LoginRequiredMixin, View):
+    def get(self, request, nom_partie):
+        # Récupérer la partie par nom
+        partie = get_object_or_404(Partie, nom=nom_partie)
+
+        # Vérifier que l'utilisateur fait partie des joueurs
+        if request.user not in partie.joueurs.all():
+            return redirect('creer_partie')
+
+        # Récupérer ou créer l'association JoueurPartie si elle n'existe pas
+        joueur_courant, created = JoueurPartie.objects.get_or_create(
+            joueur=request.user,
+            partie=partie,
+            defaults={'points_victoire': 0, 'jetons': {"noir": 0,"bleu":0, "blanc": 0, "rouge": 0, "vert": 0, "jaune": 0}}
+        )
+
+        # Récupérer le plateau associé à la partie et les jetons du plateau
+        plateau = partie.plateau
+        jetons = plateau.jetons.all()
+        plateau_jetons = {jeton.couleur: jeton.quantite for jeton in jetons}
+        cartes_plateau = plateau.cartes.all()
+
+        # Obtenir les adversaires
+        adversaires = JoueurPartie.objects.filter(partie=partie).exclude(joueur=request.user)
+
+        # Passer le joueur dont c'est le tour au contexte
+        current_player = partie.joueur_courant
+
+        context = {
+            'nom_partie': partie.nom,
+            'partie': partie,
+            'joueur_courant': joueur_courant,
+            'adversaires': adversaires,
+            'plateau': plateau_jetons,
+            'cartes_plateau': cartes_plateau,
+            'current_player': current_player,  # Nouveau champ dans le contexte
+        }
+        return render(request, 'jeu_templates/game.html', context)
+    
+
 
     
 class RejoindrePartieView(LoginRequiredMixin, View):
@@ -278,43 +358,6 @@ class RejoindrePartieView(LoginRequiredMixin, View):
         return redirect('game_view', nom_partie=partie.nom)
 
 
-
-class GameView(LoginRequiredMixin, View):
-    def get(self, request, nom_partie):
-        # Récupérer la partie par nom
-        partie = get_object_or_404(Partie, nom=nom_partie)
-
-        # Vérifier que l'utilisateur fait partie des joueurs
-        if request.user not in partie.joueurs.all():
-            return redirect('creer_partie')
-
-        # Récupérer ou créer l'association JoueurPartie si elle n'existe pas
-        joueur_courant, created = JoueurPartie.objects.get_or_create(
-            joueur=request.user,
-            partie=partie,
-            defaults={'points_victoire': 0, 'jetons': {"noir": 0,"bleu":0, "blanc": 0, "rouge": 0, "vert": 0, "jaune": 0}}
-        )
-
-        # Récupérer le plateau associé à la partie et les jetons du plateau
-        plateau = partie.plateau
-        jetons = plateau.jetons.all()
-        plateau_jetons = {jeton.couleur: jeton.quantite for jeton in jetons}
-
-        # Obtenir les adversaires
-        adversaires = JoueurPartie.objects.filter(partie=partie).exclude(joueur=request.user)
-
-        # Passer le joueur dont c'est le tour au contexte
-        current_player = partie.joueur_courant
-
-        context = {
-            'nom_partie': partie.nom,
-            'partie': partie,
-            'joueur_courant': joueur_courant,
-            'adversaires': adversaires,
-            'plateau': plateau_jetons,
-            'current_player': current_player,  # Nouveau champ dans le contexte
-        }
-        return render(request, 'jeu_templates/game.html', context)
     
 
 

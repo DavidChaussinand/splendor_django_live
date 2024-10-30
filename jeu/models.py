@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
-
+import json
 
 
 
@@ -10,8 +10,6 @@ class Partie(models.Model):
     nombre_joueurs = models.IntegerField()
     joueurs = models.ManyToManyField(User, related_name='parties')
     date_creation = models.DateTimeField(auto_now_add=True)
-
-    # Nouveau champ pour le joueur courant
     joueur_courant = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='parties_en_cours')
     
     def joueur_suivant(self):
@@ -31,29 +29,38 @@ class Partie(models.Model):
 
 
 
-# jeu/models.py
-
-
-
 
 
 
 class Carte(models.Model):
-    couleur = models.CharField(max_length=50)
+    niveau = models.PositiveIntegerField()
+    cout = models.TextField()  # Utilisé pour stocker le coût sous forme de JSON.
+    bonus = models.CharField(max_length=50)  # Couleur de bonus
     points_victoire = models.PositiveIntegerField()
-    bonus = models.PositiveIntegerField()
+
+    def save(self, *args, **kwargs):
+        if isinstance(self.cout, dict):
+            self.cout = json.dumps(self.cout)  # Convertir en chaîne JSON si c'est un dictionnaire.
+        super().save(*args, **kwargs)
+
+    def get_cout(self):
+        return json.loads(self.cout)  # Reconvertir en dict pour l'usage.
 
     def __str__(self):
-        return f"Carte {self.couleur} avec {self.points_victoire} point(s) et bonus de {self.bonus}"
-
-
-
+        return f"Carte niveau {self.niveau} avec {self.points_victoire} points et bonus {self.bonus}"
+    
+    @property
+    def image_path(self):
+        # Retourne le chemin de l'image en fonction de l'ID de la carte
+        return f"cartes/{self.id}.png"
         
+    # pour le html <img src="{% static carte.image_path %}" alt="Image de la carte">
 
 
 
 class Plateau(models.Model):
     partie = models.OneToOneField(Partie, on_delete=models.CASCADE, related_name='plateau')
+    cartes = models.ManyToManyField(Carte, related_name='plateaux')
 
     def __str__(self):
         return f"Plateau de la partie {self.partie.nom}"
