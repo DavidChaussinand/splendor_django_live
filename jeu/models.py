@@ -34,25 +34,17 @@ class Partie(models.Model):
 
 class Carte(models.Model):
     niveau = models.PositiveIntegerField()
-    cout = models.TextField()  # Utilisé pour stocker le coût sous forme de JSON.
+    cout = models.JSONField(default=dict)
     bonus = models.CharField(max_length=50)  # Couleur de bonus
     points_victoire = models.PositiveIntegerField()
 
-    def save(self, *args, **kwargs):
-        if isinstance(self.cout, dict):
-            self.cout = json.dumps(self.cout)  # Convertir en chaîne JSON si c'est un dictionnaire.
-        super().save(*args, **kwargs)
-
-    def get_cout(self):
-        return json.loads(self.cout)  # Reconvertir en dict pour l'usage.
 
     def __str__(self):
         return f"Carte niveau {self.niveau} avec {self.points_victoire} points et bonus {self.bonus}"
     
     @property
     def image_path(self):
-        # Retourne le chemin de l'image en fonction de l'ID de la carte
-        return f"cartes/{self.id}.png"
+        return f"images/cartes/{self.id}.jpg"
         
     # pour le html <img src="{% static carte.image_path %}" alt="Image de la carte">
 
@@ -99,6 +91,11 @@ class JoueurPartie(models.Model):
     partie = models.ForeignKey(Partie, on_delete=models.CASCADE, related_name='participants')
     points_victoire = models.IntegerField(default=0)
     jetons = models.JSONField(default=dict)  # Utilisation de JSONField pour stocker les jetons par couleur
+    bonus = models.JSONField(default=dict) # Utilisation de JSONField pour stocker les jetons par couleur
+    cartes_achetees = models.ManyToManyField('Carte', related_name='achetees', blank=True)  # Liste vide par défaut
+    cartes_reservees = models.ManyToManyField('Carte', related_name='reservees', blank=True)  # Liste vide par défaut
+
+
 
     def __str__(self):
         return f"{self.joueur.username} dans {self.partie.nom}"
@@ -113,3 +110,8 @@ class JoueurPartie(models.Model):
             self.save()
         else:
             raise ValueError("Pas assez de jetons disponibles pour cette couleur.")
+        
+    def acheter_carte(self, carte):
+        self.cartes_achetees.add(carte)  # Ajoute la carte à la liste des cartes achetées
+        self.points_victoire += carte.points_victoire  # Incrémente les points de victoire du joueur
+        self.save()  # 

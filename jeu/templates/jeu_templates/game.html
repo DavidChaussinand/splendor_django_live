@@ -45,7 +45,9 @@
             {% for carte in cartes_plateau %}
                 <div class="col-md-3 mb-4">
                     <div class="carte card h-100">
-                        <img src="{% static carte.image_path %}" class="card-img-top" alt="Image de la carte">
+                        <img src="/static/{{ carte.image_path }}" class="card-img-top" alt="Image de la carte" style="width: 100px; height: 120px;">
+
+
                         <div class="card-body">
                             <h5 class="card-title">Niveau {{ carte.niveau }}</h5>
                             <h5 class="card-title">id {{ carte.id }}</h5>
@@ -53,9 +55,9 @@
                                 <strong>Bonus :</strong> {{ carte.bonus|capfirst }}<br>
                                 <strong>Points de victoire :</strong> {{ carte.points_victoire }}
                             </p>
-                            <p class="card-text"><strong>Coût :</strong></p>
-                            <ul class="list-unstyled">
-                                {% for couleur, quantite in carte.get_cout.items %}
+                            <p><strong>Coût :</strong></p>
+                            <ul>
+                                {% for couleur, quantite in carte.cout.items %}
                                     <li>{{ couleur|capfirst }} : {{ quantite }}</li>
                                 {% endfor %}
                             </ul>
@@ -70,12 +72,54 @@
     <div class="joueur">
         <h2>{{ joueur_courant.joueur.username }} (Vous)</h2>
         <p>Points de victoire : {{ joueur_courant.points_victoire }}</p>
+        <!-- Jetons -->
         <h3>Vos jetons :</h3>
-        <ul>
+        <ul class="d-inline-flex flex-wrap list-unstyled">
             {% for couleur, quantite in joueur_courant.jetons.items %}
-                <li id="joueur-jetons-{{ joueur_courant.joueur.username }}-{{ couleur }}">{{ couleur }} : <span>{{ quantite }}</span></li>
+                <li id="joueur-jetons-{{ joueur_courant.joueur.username }}-{{ couleur }}" class="m-2">
+                    <strong>{{ couleur|capfirst }}</strong> : <span>{{ quantite }}</span>
+                </li>
             {% endfor %}
         </ul>
+
+        <!-- Bonus -->
+        <h3>Vos bonus :</h3>
+        <ul class="d-inline-flex flex-wrap list-unstyled">
+            {% for couleur, bonus in joueur_courant.bonus.items %}
+                <li class="m-2">
+                    <strong>{{ couleur|capfirst }}</strong> : <span>{{ bonus }}</span>
+                </li>
+            {% endfor %}
+        </ul>
+        <!-- Cartes achetées -->
+        <h3>Cartes achetées :</h3>
+        {% if joueur_courant.cartes_achetees.all %}
+            <ul class="d-inline-flex flex-wrap list-unstyled">
+                {% for carte in joueur_courant.cartes_achetees.all %}
+                    <li class="m-2">
+                        <img src="/static/{{ carte.image_path }}" class="card-img-top" alt="Image de la carte" style="width: 150px; height: 180px;">
+                        <p>{{ carte.niveau }} - {{ carte.bonus }} - {{ carte.points_victoire }} points</p>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>Aucune carte achetée</p>
+        {% endif %}
+
+        <!-- Cartes réservées -->
+        <h3>Cartes réservées :</h3>
+        {% if joueur_courant.cartes_reservees.all %}
+            <ul class="d-inline-flex flex-wrap list-unstyled">
+                {% for carte in joueur_courant.cartes_reservees.all %}
+                    <li class="m-2">
+                        <img src="{% static carte.image_path %}" alt="Carte {{ carte.id }}" class="card-img-top" style="width: 100px; height: 140px;">
+                        <p>{{ carte.niveau }} - {{ carte.bonus }} - {{ carte.points_victoire }} points</p>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>Aucune carte réservée</p>
+        {% endif %}
     </div>
     
     {% for adversaire in adversaires %}
