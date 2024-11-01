@@ -18,6 +18,11 @@ export function updateActionButtons(isMyTurn) {
 
     if (prendreDeuxJetonsButton) prendreDeuxJetonsButton.disabled = !isMyTurn;
     if (prendreTroisJetonsButton) prendreTroisJetonsButton.disabled = !isMyTurn;
+   
+    document.querySelectorAll(".carte").forEach(carte => {
+        carte.style.pointerEvents = isMyTurn ? 'auto' : 'none';
+        carte.style.opacity = isMyTurn ? '1' : '0.5';
+    });
 }
 
 export function updateBoardAndPlayerTokensMultiple(data) {
@@ -61,19 +66,21 @@ export function updateCurrentPlayer(data) {
 }
 
 
-export function updateCartesDisplay(cartes) {
+export function updateCartesDisplay(cartes, gameInstance) {
+    console.log("updateCartesDisplay appelé avec gameInstance :", gameInstance);
+    
     const cartesContainer = document.querySelector('.cartes-plateau');
-    cartesContainer.innerHTML = '';  // Effacer les cartes actuelles
+    cartesContainer.innerHTML = ''; // Effacer les cartes actuelles
 
     cartes.forEach(carte => {
         const carteDiv = document.createElement('div');
         carteDiv.classList.add('col-md-3', 'mb-4');
         carteDiv.innerHTML = `
-            <div class="carte card h-100">
-                <img src="/static/${carte.image}" class="card-img-top" alt="Image de la carte">
+            <div class="carte card h-100" data-id="${carte.id}">
+            
+                <img src="/static/${carte.image_path}" class="card-img-top" alt="Image de la carte" style="width: 150px; height: 180px;">
                 <div class="card-body">
                     <h5 class="card-title">Niveau ${carte.niveau}</h5>
-                    <h5 class="card-title">ID ${carte.id}</h5>
                     <p class="card-text">
                         <strong>Bonus :</strong> ${carte.bonus.charAt(0).toUpperCase() + carte.bonus.slice(1)}<br>
                         <strong>Points de victoire :</strong> ${carte.points_victoire}
@@ -89,4 +96,43 @@ export function updateCartesDisplay(cartes) {
         `;
         cartesContainer.appendChild(carteDiv);
     });
+
+    // Ré-attacher les écouteurs d'événements pour les nouvelles cartes
+    cartesContainer.querySelectorAll(".carte").forEach(carte => {
+        carte.addEventListener("click", gameInstance.handleCarteClick.bind(gameInstance));
+    });
 }
+
+export function updatePlayerPoints(joueur, points) {
+    const pointsElement = document.querySelector(`#joueur-points-${joueur}`);
+    if (pointsElement) {
+        pointsElement.innerText = points;
+    }
+}
+
+
+
+export function updateCartesAchetees(joueur, cartesAchetees) {
+    // Sélectionnez le conteneur des cartes achetées du joueur
+    const cartesAcheteesContainer = document.querySelector(`#joueur-cartes-achetees-${joueur}`);
+
+    if (cartesAcheteesContainer) {
+        // Effacer le contenu actuel
+        cartesAcheteesContainer.innerHTML = '';
+
+        if (cartesAchetees.length > 0) {
+            cartesAchetees.forEach(carte => {
+                const carteItem = document.createElement('li');
+                carteItem.classList.add('m-2');
+                carteItem.innerHTML = `
+                    <img src="/static/${carte.image_path}" class="card-img-top" alt="Image de la carte" style="width: 150px; height: 180px;">
+                    <p>${carte.niveau} - ${carte.bonus} - ${carte.points_victoire} points</p>
+                `;
+                cartesAcheteesContainer.appendChild(carteItem);
+            });
+        } else {
+            cartesAcheteesContainer.innerHTML = '<p>Aucune carte achetée</p>';
+        }
+    }
+}
+

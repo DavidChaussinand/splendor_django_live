@@ -8,5 +8,5 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     // Initialiser le jeu
-    new Game(nom_partie, monNomUtilisateur, currentPlayer);
+    window.game = new Game(nom_partie, monNomUtilisateur, currentPlayer);
 });

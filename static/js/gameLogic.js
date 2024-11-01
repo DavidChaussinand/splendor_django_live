@@ -1,6 +1,6 @@
 // gameLogic.js
 
-import { afficherMessage, updateActionButtons, updateBoardAndPlayerTokensMultiple, updateBoardAndPlayerTokensSingle, updateCurrentPlayer } from './ui.js';
+import { afficherMessage, updateActionButtons, updateBoardAndPlayerTokensMultiple, updateBoardAndPlayerTokensSingle, updateCurrentPlayer ,updateCartesDisplay,updatePlayerPoints ,updateCartesAchetees } from './ui.js';
 import { WebSocketClient } from './websocket.js';
 
 export class Game {
@@ -36,6 +36,11 @@ export class Game {
         document.querySelectorAll(".jeton").forEach(jeton => {
             jeton.addEventListener("click", this.handleJetonClick.bind(this));
         });
+
+        // **NOUVEAU** : Gestionnaires d'événements pour les cartes
+        document.querySelectorAll(".carte").forEach(carte => {
+            carte.addEventListener("click", this.handleCarteClick.bind(this));
+        });
     }
 
     handleSocketMessage(e) {
@@ -65,6 +70,29 @@ export class Game {
             console.log("Est-ce mon tour ? ", isMyTurn);
             updateActionButtons(isMyTurn);
         }
+
+        if (data.type === "game_update" && data.action === "acheter_carte") {
+            // Mise à jour des cartes affichées sur le plateau
+            updateCartesDisplay(data.cartes, this);
+        
+            // Mise à jour des jetons du joueur
+            for (const [couleur, quantite] of Object.entries(data.jetons)) {
+                const joueurJetonElement = document.querySelector(`#joueur-jetons-${data.joueur}-${couleur} span`);
+                if (joueurJetonElement) {
+                    joueurJetonElement.innerText = quantite;
+                }
+            }
+        
+            // Mise à jour des bonus du joueur
+            this.updatePlayerBonus(data.joueur, data.bonus);
+        
+            // Mise à jour des points de victoire du joueur
+            updatePlayerPoints(data.joueur, data.points_victoire);
+        
+            // Mise à jour des cartes achetées du joueur
+            updateCartesAchetees(data.joueur, data.cartes_achetees);
+        }
+        
     }
 
     handleSocketClose() {
@@ -121,6 +149,41 @@ export class Game {
 
         this.resetSelection();
     }
+
+
+    handleCarteClick(event) {
+        const carteElement = event.currentTarget;
+        const carteId = carteElement.getAttribute('data-id');
+        this.acheterCarte(carteId);
+    }
+    
+
+    updatePlayerBonus(joueur, bonus) {
+        for (const [couleur, quantite] of Object.entries(bonus)) {
+            const joueurBonusElement = document.querySelector(`#joueur-bonus-${joueur}-${couleur} span`);
+            if (joueurBonusElement) {
+                joueurBonusElement.innerText = quantite;
+            } else {
+                // Si l'élément n'existe pas, le créer
+                const bonusList = document.querySelector(`#joueur-bonus-list-${joueur}`);
+                if (bonusList) {
+                    const newBonusItem = document.createElement('li');
+                    newBonusItem.id = `joueur-bonus-${joueur}-${couleur}`;
+                    newBonusItem.classList.add('m-2');
+                    newBonusItem.innerHTML = `<strong>${couleur.charAt(0).toUpperCase() + couleur.slice(1)}</strong> : <span>${quantite}</span>`;
+                    bonusList.appendChild(newBonusItem);
+                }
+            }
+        }
+    }
+    
+    acheterCarte(carteId) {
+        this.socketClient.send({
+            "action": "acheter_carte",
+            "carte_id": carteId
+        });
+    }
+    
 
     resetSelection() {
         this.selectedColors.clear();

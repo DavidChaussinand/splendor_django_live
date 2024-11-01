@@ -114,4 +114,10 @@ class JoueurPartie(models.Model):
     def acheter_carte(self, carte):
         self.cartes_achetees.add(carte)  # Ajoute la carte à la liste des cartes achetées
         self.points_victoire += carte.points_victoire  # Incrémente les points de victoire du joueur
+        # Incrémenter le bonus de la couleur de la carte achetée
+        couleur_bonus = carte.bonus  # Supposons que carte.bonus est une chaîne représentant la couleur
+        if couleur_bonus in self.bonus:
+            self.bonus[couleur_bonus] += 1
+        else:
+            self.bonus[couleur_bonus] = 1
         self.save()  # 

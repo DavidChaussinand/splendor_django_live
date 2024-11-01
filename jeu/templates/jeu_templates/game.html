@@ -44,7 +44,7 @@
         <div class="cartes-plateau row">
             {% for carte in cartes_plateau %}
                 <div class="col-md-3 mb-4">
-                    <div class="carte card h-100">
+                    <div class="carte card h-100" data-id="{{ carte.id }} ">
                         <img src="/static/{{ carte.image_path }}" class="card-img-top" alt="Image de la carte" style="width: 100px; height: 120px;">
 
 
@@ -68,6 +68,11 @@
         </div>
     </div>
 
+
+
+
+
+
     <!-- Informations des joueurs -->
     <div class="joueur">
         <h2>{{ joueur_courant.joueur.username }} (Vous)</h2>
@@ -82,19 +87,21 @@
             {% endfor %}
         </ul>
 
+       
         <!-- Bonus -->
         <h3>Vos bonus :</h3>
-        <ul class="d-inline-flex flex-wrap list-unstyled">
+        <ul id="joueur-bonus-list-{{ joueur_courant.joueur.username }}" class="d-inline-flex flex-wrap list-unstyled">
             {% for couleur, bonus in joueur_courant.bonus.items %}
-                <li class="m-2">
+                <li id="joueur-bonus-{{ joueur_courant.joueur.username }}-{{ couleur }}" class="m-2">
                     <strong>{{ couleur|capfirst }}</strong> : <span>{{ bonus }}</span>
                 </li>
             {% endfor %}
         </ul>
+
         <!-- Cartes achetées -->
         <h3>Cartes achetées :</h3>
         {% if joueur_courant.cartes_achetees.all %}
-            <ul class="d-inline-flex flex-wrap list-unstyled">
+            <ul id="joueur-cartes-achetees-{{ joueur_courant.joueur.username }}" class="d-inline-flex flex-wrap list-unstyled">
                 {% for carte in joueur_courant.cartes_achetees.all %}
                     <li class="m-2">
                         <img src="/static/{{ carte.image_path }}" class="card-img-top" alt="Image de la carte" style="width: 150px; height: 180px;">
@@ -105,6 +112,7 @@
         {% else %}
             <p>Aucune carte achetée</p>
         {% endif %}
+
 
         <!-- Cartes réservées -->
         <h3>Cartes réservées :</h3>

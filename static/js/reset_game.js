@@ -46,6 +46,15 @@ document.addEventListener("DOMContentLoaded", function () {
                             }
                         }
                     }
+                    // Mise à jour des bonus du joueur
+                    for (const [joueur, bonus] of Object.entries(data.bonus)) {
+                        for (const [couleur, quantite] of Object.entries(bonus)) {
+                            const joueurBonusElement = document.querySelector(`#joueur-bonus-${joueur}-${couleur} span`);
+                            if (joueurBonusElement) {
+                                joueurBonusElement.innerText = quantite;
+                            }
+                        }
+                    }
 
                     // Mise à jour des cartes affichées
                     updateCartesDisplay(data.cartes);  

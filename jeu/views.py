@@ -183,21 +183,26 @@ def reset_game(request, partie_id):
         joueurs = JoueurPartie.objects.filter(partie=partie)
         for joueur in joueurs:
             joueur.points_victoire = 0
-            joueur.jetons = {"noir": 0,"bleu":0, "blanc": 0, "rouge": 0, "vert": 0, "jaune": 0}
+            joueur.jetons = {"noir": 0, "bleu": 0, "blanc": 0, "rouge": 0, "vert": 0, "jaune": 0}
+            joueur.bonus = {} 
+            joueur.cartes_achetees.clear()
+            joueur.cartes_reservees.clear()
             joueur.save()
 
         # Logique de réinitialisation des cartes aléatoires
         # Supposons que vous souhaitiez afficher 4 cartes au hasard pour chaque niveau
-# Sélectionner aléatoirement des cartes pour le plateau (comme dans creer_partie)
+        # Sélectionner aléatoirement des cartes pour le plateau (comme dans creer_partie)
         plateau.cartes.clear()
-        toutes_les_cartes = list(Carte.objects.all())
-        cartes_plateau = random.sample(toutes_les_cartes, 4)  # Sélectionner 4 cartes aléatoirement
+        cartes_plateau = []
+
+        # Construire la réponse JSON avec l’état réinitialisé
+        for niveau in [1, 2, 3]:
+            cartes_niveau = list(Carte.objects.filter(niveau=niveau))
+            cartes_selectionnees = random.sample(cartes_niveau, min(4, len(cartes_niveau)))
+            cartes_plateau.extend(cartes_selectionnees)
 
         plateau.cartes.set(cartes_plateau)
-
-        # Si vous avez besoin d'assigner les cartes au plateau, ajoutez le code approprié ici.
-        # Pour l'instant, cette logique construit un ensemble de cartes à afficher.
-
+        plateau.save()
 
         # Construire la réponse JSON avec l’état réinitialisé
         plateau_jetons = {jeton.couleur: jeton.quantite for jeton in plateau.jetons.all()}
@@ -206,7 +211,7 @@ def reset_game(request, partie_id):
             {
                 "id": carte.id,
                 "niveau": carte.niveau,
-                "cout": carte.get_cout(),
+                "cout": carte.cout,
                 "bonus": carte.bonus,
                 "points_victoire": carte.points_victoire,
                 "image": carte.image_path,  # Utilisez l'URL d'image ici
