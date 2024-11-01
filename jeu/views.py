@@ -189,6 +189,9 @@ def reset_game(request, partie_id):
             joueur.cartes_reservees.clear()
             joueur.save()
 
+        # Après avoir défini `joueur_jetons`
+        
+
         # Logique de réinitialisation des cartes aléatoires
         # Supposons que vous souhaitiez afficher 4 cartes au hasard pour chaque niveau
         # Sélectionner aléatoirement des cartes pour le plateau (comme dans creer_partie)
@@ -207,6 +210,7 @@ def reset_game(request, partie_id):
         # Construire la réponse JSON avec l’état réinitialisé
         plateau_jetons = {jeton.couleur: jeton.quantite for jeton in plateau.jetons.all()}
         joueur_jetons = {joueur.joueur.username: joueur.jetons for joueur in joueurs}
+        joueur_bonus = {joueur.joueur.username: joueur.bonus for joueur in joueurs}
         cartes_infos = [
             {
                 "id": carte.id,
@@ -225,6 +229,7 @@ def reset_game(request, partie_id):
             "message": "La partie a été réinitialisée.",
             "plateau": plateau_jetons,
             "joueurs": joueur_jetons,
+            "bonus": joueur_bonus,  # Ajoutez cette ligne
             "cartes": cartes_infos,
         })
     

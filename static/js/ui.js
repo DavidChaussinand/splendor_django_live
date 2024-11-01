@@ -78,7 +78,7 @@ export function updateCartesDisplay(cartes, gameInstance) {
         carteDiv.innerHTML = `
             <div class="carte card h-100" data-id="${carte.id}">
             
-                <img src="/static/${carte.image_path}" class="card-img-top" alt="Image de la carte" style="width: 100px; height: 120px;">
+                <img src="/static/${carte.image_path || carte.image}" class="card-img-top" alt="Image de la carte" style="width: 100px; height: 120px;">
                 <div class="card-body">
                     <h5 class="card-title">Niveau ${carte.niveau}</h5>
                     <p class="card-text">
