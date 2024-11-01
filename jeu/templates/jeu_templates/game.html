@@ -100,18 +100,20 @@
 
         <!-- Cartes achetées -->
         <h3>Cartes achetées :</h3>
-        {% if joueur_courant.cartes_achetees.all %}
-            <ul id="joueur-cartes-achetees-{{ joueur_courant.joueur.username }}" class="d-inline-flex flex-wrap list-unstyled">
+        <ul id="joueur-cartes-achetees-{{ joueur_courant.joueur.username }}" class="d-inline-flex flex-wrap list-unstyled">
+            {% if joueur_courant.cartes_achetees.all %}
                 {% for carte in joueur_courant.cartes_achetees.all %}
                     <li class="m-2">
                         <img src="/static/{{ carte.image_path }}" class="card-img-top" alt="Image de la carte" style="width: 150px; height: 180px;">
                         <p>{{ carte.niveau }} - {{ carte.bonus }} - {{ carte.points_victoire }} points</p>
                     </li>
                 {% endfor %}
-            </ul>
-        {% else %}
-            <p>Aucune carte achetée</p>
-        {% endif %}
+            {% else %}
+                <li class="m-2">
+                    <p>Aucune carte achetée</p>
+                </li>
+            {% endif %}
+        </ul>
 
 
         <!-- Cartes réservées -->

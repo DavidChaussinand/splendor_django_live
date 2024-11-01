@@ -78,7 +78,7 @@ export function updateCartesDisplay(cartes, gameInstance) {
         carteDiv.innerHTML = `
             <div class="carte card h-100" data-id="${carte.id}">
             
-                <img src="/static/${carte.image_path}" class="card-img-top" alt="Image de la carte" style="width: 150px; height: 180px;">
+                <img src="/static/${carte.image_path}" class="card-img-top" alt="Image de la carte" style="width: 100px; height: 120px;">
                 <div class="card-body">
                     <h5 class="card-title">Niveau ${carte.niveau}</h5>
                     <p class="card-text">
@@ -125,7 +125,7 @@ export function updateCartesAchetees(joueur, cartesAchetees) {
                 const carteItem = document.createElement('li');
                 carteItem.classList.add('m-2');
                 carteItem.innerHTML = `
-                    <img src="/static/${carte.image_path}" class="card-img-top" alt="Image de la carte" style="width: 150px; height: 180px;">
+                    <img src="/static/${carte.image_path}" class="card-img-top" alt="Image de la carte" style="width: 100px; height: 120px;">
                     <p>${carte.niveau} - ${carte.bonus} - ${carte.points_victoire} points</p>
                 `;
                 cartesAcheteesContainer.appendChild(carteItem);
