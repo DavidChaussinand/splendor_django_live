@@ -66,6 +66,7 @@ export function updateCurrentPlayer(data) {
 }
 
 
+// Mise à jour des cartes affichées
 export function updateCartesDisplay(cartes, gameInstance) {
     console.log("updateCartesDisplay appelé avec gameInstance :", gameInstance);
     
@@ -77,7 +78,6 @@ export function updateCartesDisplay(cartes, gameInstance) {
         carteDiv.classList.add('col-md-3', 'mb-4');
         carteDiv.innerHTML = `
             <div class="carte card h-100" data-id="${carte.id}">
-            
                 <img src="/static/${carte.image_path || carte.image}" class="card-img-top" alt="Image de la carte" style="width: 100px; height: 120px;">
                 <div class="card-body">
                     <h5 class="card-title">Niveau ${carte.niveau}</h5>
@@ -92,16 +92,27 @@ export function updateCartesDisplay(cartes, gameInstance) {
                         ).join('')}
                     </ul>
                 </div>
+                <div class="card-footer">
+                    <button class="btn btn-warning reserver-carte-btn" data-id="${carte.id}">Réserver</button>
+                </div>
             </div>
         `;
         cartesContainer.appendChild(carteDiv);
     });
 
-    // Ré-attacher les écouteurs d'événements pour les nouvelles cartes
+    // Ré-attacher les écouteurs d'événements pour les nouvelles cartes et boutons "Réserver"
     cartesContainer.querySelectorAll(".carte").forEach(carte => {
         carte.addEventListener("click", gameInstance.handleCarteClick.bind(gameInstance));
     });
+    cartesContainer.querySelectorAll(".reserver-carte-btn").forEach(button => {
+        button.addEventListener("click", event => {
+            event.stopPropagation();
+            const carteId = button.getAttribute('data-id');
+            gameInstance.reserverCarte(carteId);
+        });
+    });
 }
+
 
 export function updatePlayerPoints(joueur, points) {
     const pointsElement = document.querySelector(`#joueur-points-${joueur}`);
@@ -132,6 +143,28 @@ export function updateCartesAchetees(joueur, cartesAchetees) {
             });
         } else {
             cartesAcheteesContainer.innerHTML = '<p>Aucune carte achetée</p>';
+        }
+    }
+}
+
+export function updateCartesReservees(joueur, cartesReservees) {
+    const cartesReserveesContainer = document.querySelector(`#joueur-cartes-reservees-${joueur}`);
+
+    if (cartesReserveesContainer) {
+        cartesReserveesContainer.innerHTML = '';
+
+        if (cartesReservees.length > 0) {
+            cartesReservees.forEach(carte => {
+                const carteItem = document.createElement('li');
+                carteItem.classList.add('m-2');
+                carteItem.innerHTML = `
+                    <img src="/static/${carte.image_path}" class="card-img-top carte-img" alt="Image de la carte" style="width: 100px; height: 120px;">
+                    
+                `;
+                cartesReserveesContainer.appendChild(carteItem);
+            });
+        } else {
+            cartesReserveesContainer.innerHTML = '<p>Aucune carte réservée</p>';
         }
     }
 }

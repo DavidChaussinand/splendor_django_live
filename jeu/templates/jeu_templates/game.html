@@ -62,6 +62,10 @@
                                 {% endfor %}
                             </ul>
                         </div>
+                        <div class="card-footer">
+                            <button class="btn btn-warning reserver-carte-btn" data-id="{{ carte.id }}">Réserver</button>
+                        </div>
+                        
                     </div>
                 </div>
             {% endfor %}
@@ -104,7 +108,7 @@
             {% if joueur_courant.cartes_achetees.all %}
                 {% for carte in joueur_courant.cartes_achetees.all %}
                     <li class="m-2">
-                        <img src="/static/{{ carte.image_path }}" class="card-img-top" alt="Image de la carte" style="width: 150px; height: 180px;">
+                        <img src="/static/{{ carte.image_path }}" class="card-img-top" alt="Image de la carte" style="width: 100px; height: 120px;">
                         <p>{{ carte.niveau }} - {{ carte.bonus }} - {{ carte.points_victoire }} points</p>
                     </li>
                 {% endfor %}
@@ -116,20 +120,22 @@
         </ul>
 
 
+     
         <!-- Cartes réservées -->
         <h3>Cartes réservées :</h3>
-        {% if joueur_courant.cartes_reservees.all %}
-            <ul class="d-inline-flex flex-wrap list-unstyled">
+        <ul id="joueur-cartes-reservees-{{ joueur_courant.joueur.username }}" class="d-inline-flex flex-wrap list-unstyled">
+            {% if joueur_courant.cartes_reservees.all %}
                 {% for carte in joueur_courant.cartes_reservees.all %}
                     <li class="m-2">
-                        <img src="{% static carte.image_path %}" alt="Carte {{ carte.id }}" class="card-img-top" style="width: 100px; height: 140px;">
-                        <p>{{ carte.niveau }} - {{ carte.bonus }} - {{ carte.points_victoire }} points</p>
+                        <img src="/static/{{ carte.image_path }}" class="card-img-top carte-img" alt="Image de la carte" style="width: 100px; height: 120px;">
                     </li>
                 {% endfor %}
-            </ul>
-        {% else %}
-            <p>Aucune carte réservée</p>
-        {% endif %}
+            {% else %}
+                <li class="m-2">
+                    <p>Aucune carte réservée</p>
+                </li>
+            {% endif %}
+        </ul>
     </div>
     
     {% for adversaire in adversaires %}

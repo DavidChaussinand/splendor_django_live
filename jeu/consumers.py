@@ -58,6 +58,10 @@ class GameConsumer(AsyncWebsocketConsumer):
             carte_id = data.get("carte_id")
             await self.handle_acheter_carte(carte_id)
 
+        elif action == "reserver_carte":
+            carte_id = data.get("carte_id")
+            await self.handle_reserver_carte(carte_id)
+
 
     async def handle_prendre_2_jetons(self, couleur):
         result = await JetonService.prendre_2_jetons(self.partie, self.user, couleur)
@@ -127,6 +131,48 @@ class GameConsumer(AsyncWebsocketConsumer):
         # Passer au joueur suivant
         await self.passer_au_joueur_suivant()
 
+    async def handle_reserver_carte(self, carte_id):
+        carte = await database_sync_to_async(Carte.objects.get)(id=carte_id)
+        joueur_partie = await database_sync_to_async(JoueurPartie.objects.get)(joueur=self.user, partie=self.partie)
+        plateau = await database_sync_to_async(lambda: self.partie.plateau)()
+
+        try:
+            # Réserver la carte et mettre à jour les jetons jaunes
+            await database_sync_to_async(joueur_partie.reserver_carte)(carte, plateau)
+        except ValueError as e:
+            await self.send(text_data=json.dumps({"error": str(e)}))
+            return
+
+        # Retirer la carte du plateau
+        await self.remove_carte_from_plateau(carte)
+
+        # Récupérer les données mises à jour du joueur et du plateau
+        jetons = await database_sync_to_async(lambda: joueur_partie.jetons)()
+        cartes_reservees = await self.get_cartes_reservees(joueur_partie)
+        plateau_jetons = await database_sync_to_async(lambda: {j.couleur: j.quantite for j in plateau.jetons.all()})()
+        cartes_data = await self.get_cartes_data()  # Obtenir les cartes mises à jour du plateau
+
+        # Envoyer la mise à jour à tous les clients
+        await self.channel_layer.group_send(
+            self.partie_group_name,
+            {
+                "type": "game_update",
+                "action": "reserver_carte",
+                "message": f"{self.user.username} a réservé la carte {carte_id}.",
+                "joueur": self.user.username,
+                "jetons": jetons,
+                "cartes_reservees": cartes_reservees,
+                "plateau_jetons": plateau_jetons,
+                "cartes": cartes_data,  # Inclure les cartes mises à jour
+            }
+        )
+
+        # Passer au joueur suivant
+        await self.passer_au_joueur_suivant()
+
+
+
+
     async def remove_carte_from_plateau(self, carte):
         def sync_remove_carte(partie_id, carte_id):
             partie = Partie.objects.get(id=partie_id)
@@ -194,3 +240,20 @@ class GameConsumer(AsyncWebsocketConsumer):
                 'image_path': c.image_path,
             } for c in cartes]
         return await database_sync_to_async(sync_get_cartes_achetees)(joueur_partie.id)
+    
+
+    
+
+    async def get_cartes_reservees(self, joueur_partie):
+        def sync_get_cartes_reservees(joueur_partie_id):
+            joueur_partie = JoueurPartie.objects.get(id=joueur_partie_id)
+            cartes = joueur_partie.cartes_reservees.all()
+            return [{
+                'id': c.id,
+                'niveau': c.niveau,
+                'bonus': c.bonus,
+                'points_victoire': c.points_victoire,
+                'image_path': c.image_path,
+            } for c in cartes]
+        return await database_sync_to_async(sync_get_cartes_reservees)(joueur_partie.id)
+

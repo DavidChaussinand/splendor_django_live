@@ -1,6 +1,6 @@
 // gameLogic.js
 
-import { afficherMessage, updateActionButtons, updateBoardAndPlayerTokensMultiple, updateBoardAndPlayerTokensSingle, updateCurrentPlayer ,updateCartesDisplay,updatePlayerPoints ,updateCartesAchetees } from './ui.js';
+import { afficherMessage, updateActionButtons, updateBoardAndPlayerTokensMultiple, updateBoardAndPlayerTokensSingle, updateCurrentPlayer ,updateCartesDisplay,updatePlayerPoints ,updateCartesAchetees ,updateCartesReservees} from './ui.js';
 import { WebSocketClient } from './websocket.js';
 
 export class Game {
@@ -41,6 +41,15 @@ export class Game {
         document.querySelectorAll(".carte").forEach(carte => {
             carte.addEventListener("click", this.handleCarteClick.bind(this));
         });
+
+        // Gestionnaires d'événements pour les boutons "Réserver"
+        document.querySelectorAll(".reserver-carte-btn").forEach(button => {
+            button.addEventListener("click", (event) => {
+                event.stopPropagation(); // Empêche la propagation vers la carte
+                const carteId = button.getAttribute("data-id");
+                this.reserverCarte(carteId);
+            });
+        });
     }
 
     handleSocketMessage(e) {
@@ -71,27 +80,39 @@ export class Game {
             updateActionButtons(isMyTurn);
         }
 
-        if (data.type === "game_update" && data.action === "acheter_carte") {
-            // Mise à jour des cartes affichées sur le plateau
-            updateCartesDisplay(data.cartes, this);
+        if (data.type === "game_update") { 
+            if (data.action === "acheter_carte" || data.action === "reserver_carte") {
+                // Mise à jour des cartes affichées sur le plateau
+                updateCartesDisplay(data.cartes, this);
+            
+                // Mise à jour des jetons du joueur
+                for (const [couleur, quantite] of Object.entries(data.jetons)) {
+                    const joueurJetonElement = document.querySelector(`#joueur-jetons-${data.joueur}-${couleur} span`);
+                    if (joueurJetonElement) {
+                        joueurJetonElement.innerText = quantite;
+                    }
+                }
         
-            // Mise à jour des jetons du joueur
-            for (const [couleur, quantite] of Object.entries(data.jetons)) {
-                const joueurJetonElement = document.querySelector(`#joueur-jetons-${data.joueur}-${couleur} span`);
-                if (joueurJetonElement) {
-                    joueurJetonElement.innerText = quantite;
+                // Si c'est une réservation, mettre à jour les jetons jaunes du plateau
+                if (data.action === "reserver_carte") {
+                    const plateauJauneElement = document.querySelector("#plateau-jaune-quantite span");
+                    if (plateauJauneElement && data.plateau_jetons['jaune'] !== undefined) {
+                        plateauJauneElement.innerText = data.plateau_jetons['jaune'];
+                    }
+        
+                    // Mise à jour des cartes réservées du joueur
+                    updateCartesReservees(data.joueur, data.cartes_reservees);
+                }
+        
+                // Si c'est un achat, mettre à jour les bonus, points de victoire et cartes achetées
+                if (data.action === "acheter_carte") {
+                    this.updatePlayerBonus(data.joueur, data.bonus);
+                    updatePlayerPoints(data.joueur, data.points_victoire);
+                    updateCartesAchetees(data.joueur, data.cartes_achetees);
                 }
             }
-        
-            // Mise à jour des bonus du joueur
-            this.updatePlayerBonus(data.joueur, data.bonus);
-        
-            // Mise à jour des points de victoire du joueur
-            updatePlayerPoints(data.joueur, data.points_victoire);
-        
-            // Mise à jour des cartes achetées du joueur
-            updateCartesAchetees(data.joueur, data.cartes_achetees);
         }
+        
         
     }
 
@@ -156,6 +177,11 @@ export class Game {
         const carteId = carteElement.getAttribute('data-id');
         this.acheterCarte(carteId);
     }
+
+    handleReserverCarteClick(event) {
+        const carteId = event.target.getAttribute('data-id');
+        this.reserverCarte(carteId);
+    }
     
 
     updatePlayerBonus(joueur, bonus) {
@@ -180,6 +206,13 @@ export class Game {
     acheterCarte(carteId) {
         this.socketClient.send({
             "action": "acheter_carte",
+            "carte_id": carteId
+        });
+    }
+
+    reserverCarte(carteId) {
+        this.socketClient.send({
+            "action": "reserver_carte",
             "carte_id": carteId
         });
     }

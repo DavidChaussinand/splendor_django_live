@@ -121,3 +121,24 @@ class JoueurPartie(models.Model):
         else:
             self.bonus[couleur_bonus] = 1
         self.save()  # 
+
+
+    
+            
+    def reserver_carte(self, carte, plateau):
+        # Vérifier que le joueur n'a pas déjà 3 cartes réservées
+        if self.cartes_reservees.count() >= 3:
+            raise ValueError("Vous ne pouvez pas avoir plus de 3 cartes réservées.")
+
+        # Ajouter la carte aux cartes réservées
+        self.cartes_reservees.add(carte)
+
+        # Vérifier la disponibilité des jetons jaunes sur le plateau
+        jeton_jaune = plateau.jetons.filter(couleur='jaune').first()
+        if jeton_jaune and jeton_jaune.quantite > 0:
+            # Ajouter un jeton jaune au joueur et décrémenter la quantité sur le plateau
+            self.jetons['jaune'] = self.jetons.get('jaune', 0) + 1
+            jeton_jaune.quantite -= 1
+            jeton_jaune.save()
+        
+        self.save()
