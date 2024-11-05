@@ -70,10 +70,22 @@ class GameConsumer(AsyncWebsocketConsumer):
             await self.send(text_data=json.dumps({"error": result["error"]}))
             return
 
+        # Récupérer les données mises à jour
+        joueur_partie = await database_sync_to_async(JoueurPartie.objects.get)(joueur=self.user, partie=self.partie)
+        jetons_joueur = await database_sync_to_async(lambda: joueur_partie.jetons)()
+        plateau_jetons = await database_sync_to_async(lambda: {j.couleur: j.quantite for j in self.partie.plateau.jetons.all()})()
+
         # Envoyer la mise à jour à tous les clients connectés à la partie
         await self.channel_layer.group_send(
             self.partie_group_name,
-            result["success"]
+            {
+                "type": "game_update",
+                "action": "prendre_2_jetons",
+                "message": f"{self.user.username} a pris 2 jetons {couleur}.",
+                "joueur": self.user.username,
+                "jetons": jetons_joueur,
+                "plateau_jetons": plateau_jetons,
+            }
         )
 
         # Passer au joueur suivant
@@ -86,31 +98,51 @@ class GameConsumer(AsyncWebsocketConsumer):
             await self.send(text_data=json.dumps({"error": result["error"]}))
             return
 
+        # Récupérer les données mises à jour
+        joueur_partie = await database_sync_to_async(JoueurPartie.objects.get)(joueur=self.user, partie=self.partie)
+        jetons_joueur = await database_sync_to_async(lambda: joueur_partie.jetons)()
+        plateau_jetons = await database_sync_to_async(lambda: {j.couleur: j.quantite for j in self.partie.plateau.jetons.all()})()
+
         # Envoyer la mise à jour à tous les clients connectés à la partie
         await self.channel_layer.group_send(
             self.partie_group_name,
-            result["success"]
+            {
+                "type": "game_update",
+                "action": "prendre_3_jetons",
+                "message": f"{self.user.username} a pris 3 jetons de couleurs différentes.",
+                "joueur": self.user.username,
+                "jetons": jetons_joueur,
+                "plateau_jetons": plateau_jetons,
+            }
         )
 
         # Passer au joueur suivant
         await self.passer_au_joueur_suivant()
 
-
     async def handle_acheter_carte(self, carte_id):
-        
         carte = await database_sync_to_async(Carte.objects.get)(id=carte_id)
         joueur_partie = await database_sync_to_async(JoueurPartie.objects.get)(joueur=self.user, partie=self.partie)
-        await database_sync_to_async(joueur_partie.acheter_carte)(carte)
-       
+        plateau = await database_sync_to_async(lambda: self.partie.plateau)()
+
+        try:
+            await database_sync_to_async(joueur_partie.acheter_carte)(carte, plateau)
+        except ValueError as e:
+            await self.send(text_data=json.dumps({"error": str(e)}))
+            return
+
+        # Retirer la carte du plateau
         await self.remove_carte_from_plateau(carte)
-    # Récupérer les données mises à jour du joueur
+
+        # Récupérer les données mises à jour
         jetons = await database_sync_to_async(lambda: joueur_partie.jetons)()
+        print("Jetons du joueur après l'achat :", jetons)
+
         bonus = await database_sync_to_async(lambda: joueur_partie.bonus)()
         points_victoire = await database_sync_to_async(lambda: joueur_partie.points_victoire)()
-        # Récupérer les cartes achetées du joueur
         cartes_achetees = await self.get_cartes_achetees(joueur_partie)
-
         cartes_data = await self.get_cartes_data()
+        plateau_jetons = await database_sync_to_async(lambda: {j.couleur: j.quantite for j in plateau.jetons.all()})()
+
 
         # Envoyer la mise à jour à tous les clients
         await self.channel_layer.group_send(
@@ -124,7 +156,8 @@ class GameConsumer(AsyncWebsocketConsumer):
                 "bonus": bonus,
                 "points_victoire": points_victoire,
                 "cartes_achetees": cartes_achetees,
-                "cartes": cartes_data
+                "cartes": cartes_data,
+                "plateau_jetons": plateau_jetons,
             }
         )
 

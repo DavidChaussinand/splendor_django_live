@@ -62,6 +62,8 @@ class Plateau(models.Model):
 class Jeton(models.Model):
     couleur = models.CharField(max_length=50)
     quantite = models.PositiveIntegerField()
+    max_quantite = models.IntegerField(default=7)  # Ajustez la valeur par défaut si nécessaire
+
     plateau = models.ForeignKey(Plateau, on_delete=models.CASCADE, related_name='jetons', null=True, blank=True)
   
 
@@ -111,17 +113,87 @@ class JoueurPartie(models.Model):
         else:
             raise ValueError("Pas assez de jetons disponibles pour cette couleur.")
         
-    def acheter_carte(self, carte):
-        self.cartes_achetees.add(carte)  # Ajoute la carte à la liste des cartes achetées
-        self.points_victoire += carte.points_victoire  # Incrémente les points de victoire du joueur
-        # Incrémenter le bonus de la couleur de la carte achetée
-        couleur_bonus = carte.bonus  # Supposons que carte.bonus est une chaîne représentant la couleur
-        if couleur_bonus in self.bonus:
-            self.bonus[couleur_bonus] += 1
-        else:
-            self.bonus[couleur_bonus] = 1
-        self.save()  # 
+    def acheter_carte(self, carte, plateau):
+            # Calculer le coût après application des bonus
+            cout_apres_bonus = {}
+            for couleur, quantite in carte.cout.items():
+                bonus_couleur = self.bonus.get(couleur, 0)
+                cout_reduit = max(0, quantite - bonus_couleur)
+                cout_apres_bonus[couleur] = cout_reduit
 
+            # Copie des jetons du joueur
+            jetons_joueur = self.jetons.copy()
+            total_jetons_jaunes_disponibles = jetons_joueur.get('jaune', 0)
+            jaune_utilises = 0
+            jetons_utilises = {}
+
+            # Vérifier si le joueur a suffisamment de jetons pour chaque couleur
+            for couleur, quantite_necessaire in cout_apres_bonus.items():
+                jetons_disponibles = jetons_joueur.get(couleur, 0)
+                if jetons_disponibles >= quantite_necessaire:
+                    # Le joueur a assez de jetons de cette couleur
+                    jetons_utilises[couleur] = quantite_necessaire
+                    jetons_joueur[couleur] -= quantite_necessaire
+                else:
+                    # Le joueur n'a pas assez de jetons de cette couleur
+                    quantite_a_completer = quantite_necessaire - jetons_disponibles
+                    # Utiliser tous les jetons de couleur restants
+                    jetons_utilises[couleur] = jetons_disponibles
+                    jetons_joueur[couleur] = 0
+                    # Utiliser des jetons jaunes pour compléter
+                    if total_jetons_jaunes_disponibles >= quantite_a_completer:
+                        jaune_utilises += quantite_a_completer
+                        total_jetons_jaunes_disponibles -= quantite_a_completer
+                    else:
+                        # Pas assez de jetons jaunes pour compléter
+                        raise ValueError("Vous n'avez pas assez de jetons pour acheter cette carte.")
+
+            # Retirer les jetons utilisés du joueur
+            for couleur, quantite_utilisee in jetons_utilises.items():
+                if quantite_utilisee > 0:
+                    self.jetons[couleur] -= quantite_utilisee
+                    if self.jetons[couleur] == 0:
+                        del self.jetons[couleur]
+
+            # Retirer les jetons jaunes utilisés du joueur
+            if jaune_utilises > 0:
+                self.jetons['jaune'] -= jaune_utilises
+                if self.jetons['jaune'] == 0:
+                    del self.jetons['jaune']
+
+            self.save()
+            print("Jetons du joueur après l'achat :", self.jetons)
+
+
+            # Ajouter les jetons utilisés au plateau
+            for couleur, quantite_utilisee in jetons_utilises.items():
+                if quantite_utilisee > 0:
+                    plateau_jeton = plateau.jetons.get(couleur=couleur)
+                    plateau_jeton.quantite += quantite_utilisee
+                    # Assurer que la quantité ne dépasse pas le maximum autorisé
+                    plateau_jeton.quantite = min(plateau_jeton.quantite, plateau_jeton.max_quantite)
+                    plateau_jeton.save()
+
+            # Ajouter les jetons jaunes utilisés au plateau
+            if jaune_utilises > 0:
+                plateau_jeton_jaune = plateau.jetons.get(couleur='jaune')
+                plateau_jeton_jaune.quantite += jaune_utilises
+                # Assurer que la quantité ne dépasse pas le maximum autorisé
+                plateau_jeton_jaune.quantite = min(plateau_jeton_jaune.quantite, plateau_jeton_jaune.max_quantite)
+                plateau_jeton_jaune.save()
+
+            # Ajouter la carte aux cartes achetées
+            self.cartes_achetees.add(carte)
+            self.points_victoire += carte.points_victoire
+
+            # Incrémenter le bonus de la couleur de la carte achetée
+            couleur_bonus = carte.bonus
+            if couleur_bonus in self.bonus:
+                self.bonus[couleur_bonus] += 1
+            else:
+                self.bonus[couleur_bonus] = 1
+
+            self.save()
 
     
             

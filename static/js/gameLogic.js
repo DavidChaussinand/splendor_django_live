@@ -1,6 +1,6 @@
 // gameLogic.js
 
-import { afficherMessage, updateActionButtons, updateBoardAndPlayerTokensMultiple, updateBoardAndPlayerTokensSingle, updateCurrentPlayer ,updateCartesDisplay,updatePlayerPoints ,updateCartesAchetees ,updateCartesReservees} from './ui.js';
+import { afficherMessage, updateActionButtons, updateBoardAndPlayerTokensMultiple, updateBoardAndPlayerTokensSingle, updateCurrentPlayer ,updateCartesDisplay,updatePlayerPoints ,updateCartesAchetees ,updateCartesReservees, updatePlateauJetons, updatePlayerTokens, refreshPlayerTokens} from './ui.js';
 import { WebSocketClient } from './websocket.js';
 
 export class Game {
@@ -55,66 +55,70 @@ export class Game {
     handleSocketMessage(e) {
         const data = JSON.parse(e.data);
         console.log('Données reçues :', data);
-
+    
         if (data.error) {
             afficherMessage('error', data.error);
             return;
         }
-
+    
         if (data.message) {
             afficherMessage('info', data.message);
-
-            if (data.couleurs) {
-                updateBoardAndPlayerTokensMultiple(data);
-            } else if (data.couleur) {
-                updateBoardAndPlayerTokensSingle(data);
-            }
         }
-
+    
         if (data.type === "tour_update") {
             console.log("Message 'tour_update' reçu :", data);
             updateCurrentPlayer(data);
-
+    
             const isMyTurn = data.current_player === this.monNomUtilisateur;
             console.log("Est-ce mon tour ? ", isMyTurn);
             updateActionButtons(isMyTurn);
         }
+    
+        if (data.type === "game_update") {
+            if (["acheter_carte", "reserver_carte", "prendre_2_jetons", "prendre_3_jetons"].includes(data.action)) {
 
-        if (data.type === "game_update") { 
-            if (data.action === "acheter_carte" || data.action === "reserver_carte") {
-                // Mise à jour des cartes affichées sur le plateau
-                updateCartesDisplay(data.cartes, this);
-            
+                if (data.cartes) {
+                    updateCartesDisplay(data.cartes, this);
+                }
+
                 // Mise à jour des jetons du joueur
-                for (const [couleur, quantite] of Object.entries(data.jetons)) {
-                    const joueurJetonElement = document.querySelector(`#joueur-jetons-${data.joueur}-${couleur} span`);
-                    if (joueurJetonElement) {
-                        joueurJetonElement.innerText = quantite;
+                updatePlayerTokens(data.joueur, data.jetons);
+                
+                
+    
+                // Mise à jour des jetons du plateau
+                for (const [couleur, quantite] of Object.entries(data.plateau_jetons)) {
+                    const plateauJetonElement = document.querySelector(`#plateau-${couleur}-quantite span`);
+                    if (plateauJetonElement) {
+                        plateauJetonElement.innerText = quantite;
                     }
                 }
-        
-                // Si c'est une réservation, mettre à jour les jetons jaunes du plateau
+    
                 if (data.action === "reserver_carte") {
-                    const plateauJauneElement = document.querySelector("#plateau-jaune-quantite span");
-                    if (plateauJauneElement && data.plateau_jetons['jaune'] !== undefined) {
-                        plateauJauneElement.innerText = data.plateau_jetons['jaune'];
-                    }
-        
                     // Mise à jour des cartes réservées du joueur
                     updateCartesReservees(data.joueur, data.cartes_reservees);
                 }
-        
-                // Si c'est un achat, mettre à jour les bonus, points de victoire et cartes achetées
+    
                 if (data.action === "acheter_carte") {
+                    // Mise à jour des bonus du joueur
                     this.updatePlayerBonus(data.joueur, data.bonus);
+    
+                    // Mise à jour des points de victoire du joueur
                     updatePlayerPoints(data.joueur, data.points_victoire);
+    
+                    // Mise à jour des cartes achetées du joueur
                     updateCartesAchetees(data.joueur, data.cartes_achetees);
+                    // Rafraîchissement visuel des jetons du joueur après l'achat
+                    refreshPlayerTokens(data.joueur, data.jetons);
+                   
                 }
+    
+                // Vous pouvez ajouter des messages spécifiques pour les actions "prendre_2_jetons" et "prendre_3_jetons" si nécessaire
             }
         }
-        
-        
     }
+    
+
 
     handleSocketClose() {
         console.error("Socket fermé de manière inattendue.");

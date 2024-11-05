@@ -322,6 +322,7 @@ class GameView(LoginRequiredMixin, View):
         jetons = plateau.jetons.all()
         plateau_jetons = {jeton.couleur: jeton.quantite for jeton in jetons}
         cartes_plateau = plateau.cartes.all()
+        
 
         # Obtenir les adversaires
         adversaires = JoueurPartie.objects.filter(partie=partie).exclude(joueur=request.user)

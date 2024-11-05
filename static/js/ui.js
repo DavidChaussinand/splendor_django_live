@@ -169,3 +169,45 @@ export function updateCartesReservees(joueur, cartesReservees) {
     }
 }
 
+export function updatePlateauJetons(plateauJetons) {
+    for (const [couleur, quantite] of Object.entries(plateauJetons)) {
+        const plateauJetonElement = document.querySelector(`#plateau-${couleur}-quantite span`);
+        if (plateauJetonElement) {
+            plateauJetonElement.innerText = quantite;
+        }
+    }
+}
+
+
+
+export function refreshPlayerTokens(joueur, jetons) {
+    for (const [couleur, quantite] of Object.entries(jetons)) {
+        const selector = `#joueur-jetons-${joueur}-${couleur} span`;
+        const joueurJetonElement = document.querySelector(selector);
+        if (joueurJetonElement) {
+            joueurJetonElement.innerText = quantite;
+        } else {
+            console.error(`Élément non trouvé pour le sélecteur : ${selector}`);
+        }
+    }
+}
+
+
+
+export function updatePlayerTokens(joueur, jetons) {
+    const colors = ['noir', 'bleu', 'blanc', 'rouge', 'vert', 'jaune']; // Liste complète des couleurs de jetons possibles
+    const playerTokenContainer = document.querySelector(`#joueur-jetons-${joueur}`);
+
+    if (playerTokenContainer) {
+        playerTokenContainer.innerHTML = ''; // Efface le contenu actuel
+
+        colors.forEach(couleur => {
+            const quantite = jetons[couleur] || 0; // Si le jeton n'existe pas, on affiche 0
+            const listItem = document.createElement('li');
+            listItem.id = `joueur-jetons-${joueur}-${couleur}`;
+            listItem.innerHTML = `${couleur.charAt(0).toUpperCase() + couleur.slice(1)} : <span>${quantite}</span>`;
+            playerTokenContainer.appendChild(listItem);
+        });
+    }
+}
+

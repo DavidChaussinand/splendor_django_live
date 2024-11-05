@@ -83,13 +83,18 @@
         <p>Points de victoire : {{ joueur_courant.points_victoire }}</p>
         <!-- Jetons -->
         <h3>Vos jetons :</h3>
-        <ul class="d-inline-flex flex-wrap list-unstyled">
-            {% for couleur, quantite in joueur_courant.jetons.items %}
-                <li id="joueur-jetons-{{ joueur_courant.joueur.username }}-{{ couleur }}" class="m-2">
-                    <strong>{{ couleur|capfirst }}</strong> : <span>{{ quantite }}</span>
-                </li>
-            {% endfor %}
-        </ul>
+        {% with username=joueur_courant.joueur.username|slugify %}
+            <ul id="joueur-jetons-{{ username }}">
+                {% for couleur, quantite in joueur_courant.jetons.items %}
+                    {% if quantite > 0 %}
+                        <li id="joueur-jetons-{{ username }}-{{ couleur }}">
+                            {{ couleur|capfirst }} : <span>{{ quantite }}</span>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+        {% endwith %}
+        
 
        
         <!-- Bonus -->
