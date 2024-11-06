@@ -57,35 +57,30 @@
         <button id="prendre-trois-jetons">Prendre 3 jetons différents</button>
         <div class="clear"></div>
         <!-- Affichage des cartes du plateau -->
-        <div class="cartes-plateau row">
-            {% for carte in cartes_plateau %}
-                <div class="col-md-3 mb-4">
-                    <div class="carte card h-100" data-id="{{ carte.id }} ">
-                        <img src="/static/{{ carte.image_path }}" class="card-img-top" alt="Image de la carte" style="width: 100px; height: 120px;">
-
-
-                        <div class="card-body">
-                            <h5 class="card-title">Niveau {{ carte.niveau }}</h5>
-                            <h5 class="card-title">id {{ carte.id }}</h5>
-                            <p class="card-text">
-                                <strong>Bonus :</strong> {{ carte.bonus|capfirst }}<br>
-                                <strong>Points de victoire :</strong> {{ carte.points_victoire }}
-                            </p>
-                            <p><strong>Coût :</strong></p>
-                            <ul>
-                                {% for couleur, quantite in carte.cout.items %}
-                                    <li>{{ couleur|capfirst }} : {{ quantite }}</li>
-                                {% endfor %}
-                            </ul>
-                        </div>
-                        <div class="card-footer">
-                            <button class="btn btn-warning reserver-carte-btn" data-id="{{ carte.id }}">Réserver</button>
-                        </div>
-                        
+        <div class="plateau">
+            <div class="cartes-plateau row justify-content-between">
+                <!-- Pile de carte à gauche -->
+                <div class="col-md-2 mb-4">
+                    <div class="pile-de-carte">
+                        <img src="/static/images/cartes/fond_de_carte_rouge.jpg" class="card-img-pile" alt="Pile de cartes">
                     </div>
                 </div>
-            {% endfor %}
+                
+                <!-- Cartes visibles sur le plateau -->
+                {% for carte in cartes_plateau %}
+                    <div class="col-md-2 mb-4">
+                        <div class="carte card" data-id="{{ carte.id }}">
+                            <img src="/static/{{ carte.image_path }}" class="card-img-top" alt="Image de la carte">
+        
+                            <div class="card-footer">
+                                <button class="btn btn-warning reserver-carte-btn" data-id="{{ carte.id }}">Réserver</button>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
         </div>
+        
     </div>
 
 
