@@ -30,6 +30,16 @@ class GameConsumer(AsyncWebsocketConsumer):
             "current_player": current_player.username,
         }))
 
+        joueur_partie = await database_sync_to_async(JoueurPartie.objects.get)(joueur=self.user, partie=self.partie)
+        if joueur_partie.tokens_a_defausser > 0:
+            jetons_joueur = joueur_partie.jetons
+            await self.send(text_data=json.dumps({
+                "type": "discard_tokens",
+                "message": f"Vous avez {sum(jetons_joueur.values())} jetons, vous devez défausser {joueur_partie.tokens_a_defausser} jeton(s).",
+                "jetons": jetons_joueur,
+                "tokens_to_discard": joueur_partie.tokens_a_defausser,
+            }))
+
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard(self.partie_group_name, self.channel_name)
 
@@ -41,6 +51,17 @@ class GameConsumer(AsyncWebsocketConsumer):
         # Actualiser le joueur courant depuis la base de données
         self.partie = await PartieService.get_partie(self.nom_partie)
         joueur_courant = await PartieService.get_joueur_courant(self.partie)
+        joueur_partie = await database_sync_to_async(JoueurPartie.objects.get)(joueur=self.user, partie=self.partie)
+        
+
+            # Vérifier si le joueur doit défausser des jetons
+        if joueur_partie.tokens_a_defausser > 0 and action != "defausser_jetons":
+            await self.send(text_data=json.dumps({"error": "Vous devez d'abord défausser des jetons."}))
+            return
+
+        if joueur_courant != self.user:
+            await self.send(text_data=json.dumps({"error": "Ce n'est pas votre tour."}))
+            return
 
         if joueur_courant != self.user:
             await self.send(text_data=json.dumps({"error": "Ce n'est pas votre tour."}))
@@ -53,6 +74,10 @@ class GameConsumer(AsyncWebsocketConsumer):
         elif action == "prendre_3_jetons":
             couleurs = data.get("couleurs")
             await self.handle_prendre_3_jetons(couleurs)
+        
+        elif action == "defausser_jetons":
+            jetons_a_defausser = data.get("jetons_a_defausser")
+            await self.handle_defausser_jetons(jetons_a_defausser)
         
         elif action == "acheter_carte":
             carte_id = data.get("carte_id")
@@ -75,6 +100,20 @@ class GameConsumer(AsyncWebsocketConsumer):
         jetons_joueur = await database_sync_to_async(lambda: joueur_partie.jetons)()
         plateau_jetons = await database_sync_to_async(lambda: {j.couleur: j.quantite for j in self.partie.plateau.jetons.all()})()
 
+
+        total_tokens = sum(jetons_joueur.values())
+
+        if total_tokens > 10:
+            joueur_partie.tokens_a_defausser = total_tokens - 10
+            await database_sync_to_async(joueur_partie.save)()
+            # Envoyer une notification au joueur pour défausser des jetons
+            await self.send(text_data=json.dumps({
+                "type": "discard_tokens",
+                "message": f"Vous avez {total_tokens} jetons, vous devez défausser {joueur_partie.tokens_a_defausser} jeton(s).",
+                "jetons": jetons_joueur,
+                "tokens_to_discard": joueur_partie.tokens_a_defausser,
+            }))
+            return  # Ne pas passer au joueur suivant pour l'instant
         # Envoyer la mise à jour à tous les clients connectés à la partie
         await self.channel_layer.group_send(
             self.partie_group_name,
@@ -103,7 +142,21 @@ class GameConsumer(AsyncWebsocketConsumer):
         jetons_joueur = await database_sync_to_async(lambda: joueur_partie.jetons)()
         plateau_jetons = await database_sync_to_async(lambda: {j.couleur: j.quantite for j in self.partie.plateau.jetons.all()})()
 
-        # Envoyer la mise à jour à tous les clients connectés à la partie
+        total_tokens = sum(jetons_joueur.values())
+
+        if total_tokens > 10:
+            joueur_partie.tokens_a_defausser = total_tokens - 10
+            await database_sync_to_async(joueur_partie.save)()
+            # Envoyer une notification au joueur pour défausser des jetons
+            await self.send(text_data=json.dumps({
+                "type": "discard_tokens",
+                "message": f"Vous avez {total_tokens} jetons, vous devez défausser {joueur_partie.tokens_a_defausser} jeton(s).",
+                "jetons": jetons_joueur,
+                "tokens_to_discard": joueur_partie.tokens_a_defausser,
+            }))
+            return  # Ne pas passer au joueur suivant pour l'instant
+
+            # Envoyer la mise à jour à tous les clients connectés à la partie
         await self.channel_layer.group_send(
             self.partie_group_name,
             {
@@ -185,6 +238,24 @@ class GameConsumer(AsyncWebsocketConsumer):
         plateau_jetons = await database_sync_to_async(lambda: {j.couleur: j.quantite for j in plateau.jetons.all()})()
         cartes_data = await self.get_cartes_data()  # Obtenir les cartes mises à jour du plateau
 
+        
+        # Vérifier le nombre total de jetons après réservation
+        jetons_joueur = await database_sync_to_async(lambda: joueur_partie.jetons)()
+        total_tokens = sum(jetons_joueur.values())
+
+        if total_tokens > 10:
+            joueur_partie.tokens_a_defausser = total_tokens - 10
+            await database_sync_to_async(joueur_partie.save)()
+            # Envoyer une notification au joueur pour défausser des jetons
+            await self.send(text_data=json.dumps({
+                "type": "discard_tokens",
+                "message": f"Vous avez {total_tokens} jetons, vous devez défausser {joueur_partie.tokens_a_defausser} jeton(s).",
+                "jetons": jetons_joueur,
+                "tokens_to_discard": joueur_partie.tokens_a_defausser,
+            }))
+            return  # Ne pas passer au joueur suivant pour l'instant
+
+
         # Envoyer la mise à jour à tous les clients
         await self.channel_layer.group_send(
             self.partie_group_name,
@@ -193,7 +264,7 @@ class GameConsumer(AsyncWebsocketConsumer):
                 "action": "reserver_carte",
                 "message": f"{self.user.username} a réservé la carte {carte_id}.",
                 "joueur": self.user.username,
-                "jetons": jetons,
+                "jetons": jetons_joueur,
                 "cartes_reservees": cartes_reservees,
                 "plateau_jetons": plateau_jetons,
                 "cartes": cartes_data,  # Inclure les cartes mises à jour
@@ -289,4 +360,53 @@ class GameConsumer(AsyncWebsocketConsumer):
                 'image_path': c.image_path,
             } for c in cartes]
         return await database_sync_to_async(sync_get_cartes_reservees)(joueur_partie.id)
+    
 
+    async def handle_defausser_jetons(self, jetons_a_defausser):
+        joueur_partie = await database_sync_to_async(JoueurPartie.objects.get)(joueur=self.user, partie=self.partie)
+        total_tokens_to_discard = joueur_partie.tokens_a_defausser
+        total_discarded = sum(jetons_a_defausser.values())
+
+        if total_discarded != total_tokens_to_discard:
+            await self.send(text_data=json.dumps({"error": f"Vous devez défausser exactement {total_tokens_to_discard} jeton(s)."}))
+            return
+
+        plateau = await database_sync_to_async(lambda: self.partie.plateau)()
+
+        # Défausser les jetons
+        for couleur, quantite in jetons_a_defausser.items():
+            if quantite > 0:
+                if joueur_partie.jetons.get(couleur, 0) >= quantite:
+                    joueur_partie.jetons[couleur] -= quantite
+                    if joueur_partie.jetons[couleur] == 0:
+                        del joueur_partie.jetons[couleur]
+                    # Ajouter les jetons défaussés au plateau
+                    plateau_jeton = await database_sync_to_async(plateau.jetons.get)(couleur=couleur)
+                    plateau_jeton.quantite += quantite
+                    await database_sync_to_async(plateau_jeton.save)()
+                else:
+                    await self.send(text_data=json.dumps({"error": f"Vous n'avez pas assez de jetons {couleur} pour défausser."}))
+                    return
+
+        joueur_partie.tokens_a_defausser = 0
+        await database_sync_to_async(joueur_partie.save)()
+
+        # Récupérer les données mises à jour
+        jetons_joueur = joueur_partie.jetons
+        plateau_jetons = await database_sync_to_async(lambda: {j.couleur: j.quantite for j in plateau.jetons.all()})()
+
+        # Envoyer la mise à jour à tous les clients
+        await self.channel_layer.group_send(
+            self.partie_group_name,
+            {
+                "type": "game_update",
+                "action": "defausser_jetons",
+                "message": f"{self.user.username} a défaussé des jetons.",
+                "joueur": self.user.username,
+                "jetons": jetons_joueur,
+                "plateau_jetons": plateau_jetons,
+            }
+        )
+
+        # Passer au joueur suivant
+        await self.passer_au_joueur_suivant()

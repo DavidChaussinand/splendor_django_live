@@ -20,7 +20,23 @@
     <button id="reset-game" data-url="{% url 'reset_game' partie.id %}">Réinitialiser la partie</button>
     
   
-
+    <!-- Modal de défausse des jetons -->
+    <div class="modal fade" id="discardTokensModal" tabindex="-1" aria-labelledby="discardTokensModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h1 class="modal-title fs-5" id="discardTokensModalLabel">Défausser des jetons</h1>
+            </div>
+            <div class="modal-body">
+              <!-- Les sélecteurs de jetons seront insérés ici -->
+            </div>
+            <div class="modal-footer">
+              <button type="button" id="confirmDiscardButton" class="btn btn-primary">Confirmer</button>
+            </div>
+          </div>
+        </div>
+      </div>
+  
 
 
     <!-- Affichage du nombre de joueurs -->

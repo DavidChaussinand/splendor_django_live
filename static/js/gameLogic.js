@@ -73,9 +73,13 @@ export class Game {
             console.log("Est-ce mon tour ? ", isMyTurn);
             updateActionButtons(isMyTurn);
         }
+
+        if (data.type === "discard_tokens") {
+            this.showDiscardTokensModal(data.tokens_to_discard, data.jetons);
+        }
     
         if (data.type === "game_update") {
-            if (["acheter_carte", "reserver_carte", "prendre_2_jetons", "prendre_3_jetons"].includes(data.action)) {
+            if (["acheter_carte", "reserver_carte", "prendre_2_jetons", "prendre_3_jetons","defausser_jetons"].includes(data.action)) {
 
                 if (data.cartes) {
                     updateCartesDisplay(data.cartes, this);
@@ -86,13 +90,9 @@ export class Game {
                 
                 
     
+                
                 // Mise à jour des jetons du plateau
-                for (const [couleur, quantite] of Object.entries(data.plateau_jetons)) {
-                    const plateauJetonElement = document.querySelector(`#plateau-${couleur}-quantite span`);
-                    if (plateauJetonElement) {
-                        plateauJetonElement.innerText = quantite;
-                    }
-                }
+                updatePlateauJetons(data.plateau_jetons);
     
                 if (data.action === "reserver_carte") {
                     // Mise à jour des cartes réservées du joueur
@@ -111,6 +111,11 @@ export class Game {
                     // Rafraîchissement visuel des jetons du joueur après l'achat
                     refreshPlayerTokens(data.joueur, data.jetons);
                    
+                }
+                if (data.action === "defausser_jetons") {
+                    // Si vous avez besoin d'une logique spécifique pour la défausse, vous pouvez l'ajouter ici
+                    // Par exemple, afficher un message spécifique
+                    afficherMessage('info', `${data.joueur} a défaussé des jetons.`);
                 }
     
                 // Vous pouvez ajouter des messages spécifiques pour les actions "prendre_2_jetons" et "prendre_3_jetons" si nécessaire
@@ -230,4 +235,75 @@ export class Game {
     updateActionButtons(isMyTurn) {
         updateActionButtons(isMyTurn);
     }
+
+    // gameLogic.js
+
+    showDiscardTokensModal(tokensToDiscard, playerTokens) {
+        // Obtenez l'élément modal
+        const modal = document.getElementById('discardTokensModal');
+        const modalBody = modal.querySelector('.modal-body');
+        modalBody.innerHTML = '';
+
+        const tokenSelectors = {};
+        const colors = Object.keys(playerTokens);
+
+        colors.forEach(color => {
+            const maxQuantity = playerTokens[color];
+            const container = document.createElement('div');
+            container.classList.add('token-discard');
+
+            const label = document.createElement('label');
+            label.textContent = `${color.charAt(0).toUpperCase() + color.slice(1)} (${maxQuantity})`;
+
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.min = 0;
+            input.max = maxQuantity;
+            input.value = 0;
+            input.dataset.color = color;
+            input.addEventListener('change', updateTotalDiscarded.bind(this));
+
+            container.appendChild(label);
+            container.appendChild(input);
+
+            modalBody.appendChild(container);
+
+            tokenSelectors[color] = input;
+        });
+
+        const totalDiscardedDisplay = document.createElement('p');
+        totalDiscardedDisplay.id = 'totalDiscardedDisplay';
+        totalDiscardedDisplay.textContent = `Total jetons à défausser: 0 / ${tokensToDiscard}`;
+        modalBody.appendChild(totalDiscardedDisplay);
+
+        const confirmButton = modal.querySelector('#confirmDiscardButton');
+        confirmButton.disabled = true;
+        confirmButton.onclick = () => {
+            const jetons_a_defausser = {};
+            Object.values(tokenSelectors).forEach(input => {
+                const color = input.dataset.color;
+                const quantity = parseInt(input.value) || 0;
+                if (quantity > 0) {
+                    jetons_a_defausser[color] = quantity;
+                }
+            });
+            this.socketClient.send({
+                "action": "defausser_jetons",
+                "jetons_a_defausser": jetons_a_defausser,
+            });
+            $(modal).modal('hide');
+        };
+
+        function updateTotalDiscarded() {
+            let totalDiscarded = 0;
+            Object.values(tokenSelectors).forEach(input => {
+                totalDiscarded += parseInt(input.value) || 0;
+            });
+            totalDiscardedDisplay.textContent = `Total jetons à défausser: ${totalDiscarded} / ${tokensToDiscard}`;
+            confirmButton.disabled = (totalDiscarded !== tokensToDiscard);
+        }
+
+        $(modal).modal('show');
+    }
+
 }

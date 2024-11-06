@@ -96,7 +96,7 @@ class JoueurPartie(models.Model):
     bonus = models.JSONField(default=dict) # Utilisation de JSONField pour stocker les jetons par couleur
     cartes_achetees = models.ManyToManyField('Carte', related_name='achetees', blank=True)  # Liste vide par défaut
     cartes_reservees = models.ManyToManyField('Carte', related_name='reservees', blank=True)  # Liste vide par défaut
-
+    tokens_a_defausser = models.PositiveIntegerField(default=0)
 
 
     def __str__(self):

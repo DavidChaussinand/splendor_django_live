@@ -211,3 +211,12 @@ export function updatePlayerTokens(joueur, jetons) {
     }
 }
 
+export function updatePlateauJetons(plateauJetons) {
+    for (const [couleur, quantite] of Object.entries(plateauJetons)) {
+        const plateauJetonElement = document.querySelector(`#plateau-${couleur}-quantite span`);
+        if (plateauJetonElement) {
+            plateauJetonElement.innerText = quantite;
+        }
+    }
+}
+
