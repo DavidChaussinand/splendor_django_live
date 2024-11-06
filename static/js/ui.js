@@ -66,32 +66,30 @@ export function updateCurrentPlayer(data) {
 }
 
 
-// Mise à jour des cartes affichées
 export function updateCartesDisplay(cartes, gameInstance) {
     console.log("updateCartesDisplay appelé avec gameInstance :", gameInstance);
     
     const cartesContainer = document.querySelector('.cartes-plateau');
-    cartesContainer.innerHTML = ''; // Effacer les cartes actuelles
+    cartesContainer.innerHTML = ''; // Efface le contenu actuel
 
+    // Ajoute la pile de cartes
+    const pileDiv = document.createElement('div');
+    pileDiv.classList.add('col-md-2', 'mb-4');
+    pileDiv.innerHTML = `
+        <div class="pile-de-carte">
+            <img src="/static/images/cartes/fond_de_carte_rouge.jpg" class="card-img-pile" alt="Pile de cartes">
+            <p>Il reste ${gameInstance.cartes_pile_niveau_1.length} carte(s)</p>
+        </div>
+    `;
+    cartesContainer.appendChild(pileDiv);
+
+    // Ajoute les cartes visibles
     cartes.forEach(carte => {
         const carteDiv = document.createElement('div');
-        carteDiv.classList.add('col-md-3', 'mb-4');
+        carteDiv.classList.add('col-md-2', 'mb-4');
         carteDiv.innerHTML = `
             <div class="carte card h-100" data-id="${carte.id}">
-                <img src="/static/${carte.image_path || carte.image}" class="card-img-top" alt="Image de la carte" style="width: 100px; height: 120px;">
-                <div class="card-body">
-                    <h5 class="card-title">Niveau ${carte.niveau}</h5>
-                    <p class="card-text">
-                        <strong>Bonus :</strong> ${carte.bonus.charAt(0).toUpperCase() + carte.bonus.slice(1)}<br>
-                        <strong>Points de victoire :</strong> ${carte.points_victoire}
-                    </p>
-                    <p class="card-text"><strong>Coût :</strong></p>
-                    <ul class="list-unstyled">
-                        ${Object.entries(carte.cout).map(([couleur, quantite]) =>
-                            `<li>${couleur.charAt(0).toUpperCase() + couleur.slice(1)} : ${quantite}</li>`
-                        ).join('')}
-                    </ul>
-                </div>
+                <img src="/static/${carte.image_path || carte.image}" class="card-img-top" alt="Image de la carte">
                 <div class="card-footer">
                     <button class="btn btn-warning reserver-carte-btn" data-id="${carte.id}">Réserver</button>
                 </div>
@@ -100,7 +98,7 @@ export function updateCartesDisplay(cartes, gameInstance) {
         cartesContainer.appendChild(carteDiv);
     });
 
-    // Ré-attacher les écouteurs d'événements pour les nouvelles cartes et boutons "Réserver"
+    // Réattacher les écouteurs d'événements pour les nouvelles cartes
     cartesContainer.querySelectorAll(".carte").forEach(carte => {
         carte.addEventListener("click", gameInstance.handleCarteClick.bind(gameInstance));
     });
@@ -112,6 +110,10 @@ export function updateCartesDisplay(cartes, gameInstance) {
         });
     });
 }
+
+
+
+
 
 
 export function updatePlayerPoints(joueur, points) {

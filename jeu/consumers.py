@@ -6,6 +6,7 @@ from .services.jeton_service import JetonService
 from .services.joueur_service import JoueurService
 from .services.partie_service import PartieService
 
+
 class GameConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.nom_partie = self.scope['url_route']['kwargs']['nom_partie']
@@ -235,6 +236,13 @@ class GameConsumer(AsyncWebsocketConsumer):
 
         # Retirer la carte du plateau
         await self.remove_carte_from_plateau(carte)
+
+        # Ajouter la première carte de la pile à la place de la carte réservée
+        if await database_sync_to_async(self.partie.plateau.cartes_pile_niveau_1.exists)():
+            nouvelle_carte = await database_sync_to_async(self.partie.plateau.cartes_pile_niveau_1.first)()
+            await database_sync_to_async(self.partie.plateau.cartes_pile_niveau_1.remove)(nouvelle_carte)
+            await database_sync_to_async(self.partie.plateau.cartes.add)(nouvelle_carte)
+
 
         # Récupérer les données mises à jour du joueur et du plateau
         jetons = await database_sync_to_async(lambda: joueur_partie.jetons)()
