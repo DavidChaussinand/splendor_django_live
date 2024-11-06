@@ -50,6 +50,9 @@ export class Game {
                 this.reserverCarte(carteId);
             });
         });
+
+         // Gestionnaire d'événements pour acheter une carte réservée
+        this.attachReservedCardListeners();
     }
 
     handleSocketMessage(e) {
@@ -73,52 +76,56 @@ export class Game {
             console.log("Est-ce mon tour ? ", isMyTurn);
             updateActionButtons(isMyTurn);
         }
-
+    
         if (data.type === "discard_tokens") {
             this.showDiscardTokensModal(data.tokens_to_discard, data.jetons);
         }
     
         if (data.type === "game_update") {
-            if (["acheter_carte", "reserver_carte", "prendre_2_jetons", "prendre_3_jetons","defausser_jetons"].includes(data.action)) {
-
+            if (["acheter_carte", "reserver_carte", "prendre_2_jetons", "prendre_3_jetons", "defausser_jetons", "acheter_carte_reservee"].includes(data.action)) {
+                
+                // Mise à jour des cartes du plateau si nécessaire
                 if (data.cartes) {
                     updateCartesDisplay(data.cartes, this);
                 }
-
+    
                 // Mise à jour des jetons du joueur
                 updatePlayerTokens(data.joueur, data.jetons);
-                
-                
     
-                
                 // Mise à jour des jetons du plateau
                 updatePlateauJetons(data.plateau_jetons);
     
                 if (data.action === "reserver_carte") {
-                    // Mise à jour des cartes réservées du joueur
                     updateCartesReservees(data.joueur, data.cartes_reservees);
+                    if (data.joueur === this.monNomUtilisateur) {
+                        this.attachReservedCardListeners();
+                    }
                 }
     
                 if (data.action === "acheter_carte") {
-                    // Mise à jour des bonus du joueur
                     this.updatePlayerBonus(data.joueur, data.bonus);
-    
-                    // Mise à jour des points de victoire du joueur
                     updatePlayerPoints(data.joueur, data.points_victoire);
-    
-                    // Mise à jour des cartes achetées du joueur
                     updateCartesAchetees(data.joueur, data.cartes_achetees);
-                    // Rafraîchissement visuel des jetons du joueur après l'achat
                     refreshPlayerTokens(data.joueur, data.jetons);
-                   
                 }
+    
+                if (data.action === "acheter_carte_reservee") {
+                    // Mise à jour des cartes achetées et réservées pour les cartes réservées achetées
+                    updateCartesAchetees(data.joueur, data.cartes_achetees);
+                    updateCartesReservees(data.joueur, data.cartes_reservees);
+                    updatePlayerTokens(data.joueur, data.jetons);
+                    updatePlateauJetons(data.plateau_jetons);
+                    updatePlayerPoints(data.joueur, data.points_victoire);
+                    this.updatePlayerBonus(data.joueur, data.bonus);
+                    // Réattacher les gestionnaires d'événements si c'est le joueur courant
+                    if (data.joueur === this.monNomUtilisateur) {
+                        this.attachReservedCardListeners();
+                    }
+                }
+    
                 if (data.action === "defausser_jetons") {
-                    // Si vous avez besoin d'une logique spécifique pour la défausse, vous pouvez l'ajouter ici
-                    // Par exemple, afficher un message spécifique
                     afficherMessage('info', `${data.joueur} a défaussé des jetons.`);
                 }
-    
-                // Vous pouvez ajouter des messages spécifiques pour les actions "prendre_2_jetons" et "prendre_3_jetons" si nécessaire
             }
         }
     }
@@ -219,6 +226,14 @@ export class Game {
         });
     }
 
+    acheterCarteReservee(carteId) {
+        console.log(`Envoi de l'action 'acheter_carte_reservee' pour la carte ID ${carteId}`);
+        this.socketClient.send({
+            "action": "acheter_carte_reservee",
+            "carte_id": carteId
+        });
+    }
+
     reserverCarte(carteId) {
         this.socketClient.send({
             "action": "reserver_carte",
@@ -306,4 +321,14 @@ export class Game {
         $(modal).modal('show');
     }
 
+    attachReservedCardListeners() {
+        document.querySelectorAll(`[data-username="${this.monNomUtilisateur}"] .carte-img`).forEach(carte => {
+            carte.addEventListener("click", (event) => {
+                const carteId = event.target.getAttribute("data-id");
+                console.log(`Carte réservée cliquée avec l'ID ${carteId}`);
+                this.acheterCarteReservee(carteId);
+            });
+        });
+    }
+    
 }

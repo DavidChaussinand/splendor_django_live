@@ -158,8 +158,7 @@ export function updateCartesReservees(joueur, cartesReservees) {
                 const carteItem = document.createElement('li');
                 carteItem.classList.add('m-2');
                 carteItem.innerHTML = `
-                    <img src="/static/${carte.image_path}" class="card-img-top carte-img" alt="Image de la carte" style="width: 100px; height: 120px;">
-                    
+                    <img src="/static/${carte.image_path}" class="card-img-top carte-img" data-id="${carte.id}" alt="Image de la carte" style="width: 100px; height: 120px;">
                 `;
                 cartesReserveesContainer.appendChild(carteItem);
             });
@@ -169,14 +168,8 @@ export function updateCartesReservees(joueur, cartesReservees) {
     }
 }
 
-export function updatePlateauJetons(plateauJetons) {
-    for (const [couleur, quantite] of Object.entries(plateauJetons)) {
-        const plateauJetonElement = document.querySelector(`#plateau-${couleur}-quantite span`);
-        if (plateauJetonElement) {
-            plateauJetonElement.innerText = quantite;
-        }
-    }
-}
+
+
 
 
 

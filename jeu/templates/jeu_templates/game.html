@@ -144,11 +144,11 @@
      
         <!-- Cartes réservées -->
         <h3>Cartes réservées :</h3>
-        <ul id="joueur-cartes-reservees-{{ joueur_courant.joueur.username }}" class="d-inline-flex flex-wrap list-unstyled">
+        <ul id="joueur-cartes-reservees-{{ joueur_courant.joueur.username }}" data-username="{{ joueur_courant.joueur.username }}" class="d-inline-flex flex-wrap list-unstyled">
             {% if joueur_courant.cartes_reservees.all %}
                 {% for carte in joueur_courant.cartes_reservees.all %}
                     <li class="m-2">
-                        <img src="/static/{{ carte.image_path }}" class="card-img-top carte-img" alt="Image de la carte" style="width: 100px; height: 120px;">
+                        <img src="/static/{{ carte.image_path }}" class="card-img-top carte-img" alt="Image de la carte" style="width: 100px; height: 120px;" data-id="{{ carte.id }}">
                     </li>
                 {% endfor %}
             {% else %}

@@ -87,6 +87,10 @@ class GameConsumer(AsyncWebsocketConsumer):
             carte_id = data.get("carte_id")
             await self.handle_reserver_carte(carte_id)
 
+        elif action == "acheter_carte_reservee":
+            carte_id = data.get("carte_id")
+            await self.handle_acheter_carte_reservee(carte_id)
+
 
     async def handle_prendre_2_jetons(self, couleur):
         result = await JetonService.prendre_2_jetons(self.partie, self.user, couleur)
@@ -275,6 +279,46 @@ class GameConsumer(AsyncWebsocketConsumer):
         await self.passer_au_joueur_suivant()
 
 
+    # Nouvelle méthode dans GameConsumer
+    async def handle_acheter_carte_reservee(self, carte_id):
+        carte = await database_sync_to_async(Carte.objects.get)(id=carte_id)
+        joueur_partie = await database_sync_to_async(JoueurPartie.objects.get)(joueur=self.user, partie=self.partie)
+        plateau = await database_sync_to_async(lambda: self.partie.plateau)()
+        bonus = await database_sync_to_async(lambda: joueur_partie.bonus)()
+        points_victoire = await database_sync_to_async(lambda: joueur_partie.points_victoire)()
+
+        try:
+            # Essayer d'acheter la carte réservée
+            await database_sync_to_async(joueur_partie.acheter_carte_reservee)(carte, plateau)
+        except ValueError as e:
+            await self.send(text_data=json.dumps({"error": str(e)}))
+            return
+
+        # Mise à jour des données après l'achat
+        jetons = await database_sync_to_async(lambda: joueur_partie.jetons)()
+        cartes_achetees = await self.get_cartes_achetees(joueur_partie)
+        cartes_reservees = await self.get_cartes_reservees(joueur_partie)
+        plateau_jetons = await database_sync_to_async(lambda: {j.couleur: j.quantite for j in plateau.jetons.all()})()
+
+        # Envoyer la mise à jour à tous les clients
+        await self.channel_layer.group_send(
+            self.partie_group_name,
+            {
+                "type": "game_update",
+                "action": "acheter_carte_reservee",
+                "message": f"{self.user.username} a acheté une carte réservée.",
+                "joueur": self.user.username,
+                "jetons": jetons,
+                "cartes_achetees": cartes_achetees,
+                "cartes_reservees": cartes_reservees,
+                "plateau_jetons": plateau_jetons,
+                "bonus": bonus,
+                "points_victoire": points_victoire,
+            }
+        )
+
+        # Passer au joueur suivant
+        await self.passer_au_joueur_suivant()
 
 
     async def remove_carte_from_plateau(self, carte):
