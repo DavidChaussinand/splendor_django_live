@@ -191,16 +191,16 @@ class GameConsumer(AsyncWebsocketConsumer):
         # Retirer la carte du plateau
         await self.remove_carte_from_plateau(carte)
 
+        # Ajouter une nouvelle carte de la pile correspondant au niveau de la carte achetée
+        await self.ajouter_carte_nouvelle_pile(carte.niveau)
+
         # Récupérer les données mises à jour
         jetons = await database_sync_to_async(lambda: joueur_partie.jetons)()
-        print("Jetons du joueur après l'achat :", jetons)
-
         bonus = await database_sync_to_async(lambda: joueur_partie.bonus)()
         points_victoire = await database_sync_to_async(lambda: joueur_partie.points_victoire)()
         cartes_achetees = await self.get_cartes_achetees(joueur_partie)
         cartes_data = await self.get_cartes_data()
         plateau_jetons = await database_sync_to_async(lambda: {j.couleur: j.quantite for j in plateau.jetons.all()})()
-
 
         # Envoyer la mise à jour à tous les clients
         await self.channel_layer.group_send(
@@ -222,6 +222,7 @@ class GameConsumer(AsyncWebsocketConsumer):
         # Passer au joueur suivant
         await self.passer_au_joueur_suivant()
 
+
     async def handle_reserver_carte(self, carte_id):
         carte = await database_sync_to_async(Carte.objects.get)(id=carte_id)
         joueur_partie = await database_sync_to_async(JoueurPartie.objects.get)(joueur=self.user, partie=self.partie)
@@ -237,36 +238,14 @@ class GameConsumer(AsyncWebsocketConsumer):
         # Retirer la carte du plateau
         await self.remove_carte_from_plateau(carte)
 
-        # Ajouter la première carte de la pile à la place de la carte réservée
-        if await database_sync_to_async(self.partie.plateau.cartes_pile_niveau_1.exists)():
-            nouvelle_carte = await database_sync_to_async(self.partie.plateau.cartes_pile_niveau_1.first)()
-            await database_sync_to_async(self.partie.plateau.cartes_pile_niveau_1.remove)(nouvelle_carte)
-            await database_sync_to_async(self.partie.plateau.cartes.add)(nouvelle_carte)
-
+        # Ajouter une nouvelle carte de la pile correspondant au niveau de la carte réservée
+        await self.ajouter_carte_nouvelle_pile(carte.niveau)
 
         # Récupérer les données mises à jour du joueur et du plateau
         jetons = await database_sync_to_async(lambda: joueur_partie.jetons)()
         cartes_reservees = await self.get_cartes_reservees(joueur_partie)
         plateau_jetons = await database_sync_to_async(lambda: {j.couleur: j.quantite for j in plateau.jetons.all()})()
-        cartes_data = await self.get_cartes_data()  # Obtenir les cartes mises à jour du plateau
-
-        
-        # Vérifier le nombre total de jetons après réservation
-        jetons_joueur = await database_sync_to_async(lambda: joueur_partie.jetons)()
-        total_tokens = sum(jetons_joueur.values())
-
-        if total_tokens > 10:
-            joueur_partie.tokens_a_defausser = total_tokens - 10
-            await database_sync_to_async(joueur_partie.save)()
-            # Envoyer une notification au joueur pour défausser des jetons
-            await self.send(text_data=json.dumps({
-                "type": "discard_tokens",
-                "message": f"Vous avez {total_tokens} jetons, vous devez défausser {joueur_partie.tokens_a_defausser} jeton(s).",
-                "jetons": jetons_joueur,
-                "tokens_to_discard": joueur_partie.tokens_a_defausser,
-            }))
-            return  # Ne pas passer au joueur suivant pour l'instant
-
+        cartes_data = await self.get_cartes_data()
 
         # Envoyer la mise à jour à tous les clients
         await self.channel_layer.group_send(
@@ -276,10 +255,10 @@ class GameConsumer(AsyncWebsocketConsumer):
                 "action": "reserver_carte",
                 "message": f"{self.user.username} a réservé la carte {carte_id}.",
                 "joueur": self.user.username,
-                "jetons": jetons_joueur,
+                "jetons": jetons,
                 "cartes_reservees": cartes_reservees,
                 "plateau_jetons": plateau_jetons,
-                "cartes": cartes_data,  # Inclure les cartes mises à jour
+                "cartes": cartes_data,
             }
         )
 
@@ -397,7 +376,15 @@ class GameConsumer(AsyncWebsocketConsumer):
             } for c in cartes]
         return await database_sync_to_async(sync_get_cartes_achetees)(joueur_partie.id)
     
+    async def ajouter_carte_nouvelle_pile(self, niveau):
+        pile_attr = f"cartes_pile_niveau_{niveau}"
+        pile = getattr(self.partie.plateau, pile_attr, None)
 
+        # Vérifier si la pile existe et contient des cartes
+        if pile and await database_sync_to_async(pile.exists)():
+            nouvelle_carte = await database_sync_to_async(pile.first)()
+            await database_sync_to_async(pile.remove)(nouvelle_carte)
+            await database_sync_to_async(self.partie.plateau.cartes.add)(nouvelle_carte)
     
 
     async def get_cartes_reservees(self, joueur_partie):

@@ -54,6 +54,9 @@ class Plateau(models.Model):
     partie = models.OneToOneField(Partie, on_delete=models.CASCADE, related_name='plateau')
     cartes = models.ManyToManyField(Carte, related_name="cartes_visibles")
     cartes_pile_niveau_1 = models.ManyToManyField(Carte, related_name="cartes_pile_niveau_1")
+    cartes_pile_niveau_2 = models.ManyToManyField(Carte, related_name="cartes_pile_niveau_2")
+    cartes_pile_niveau_3 = models.ManyToManyField(Carte, related_name="cartes_pile_niveau_3")
+
 
     def __str__(self):
         return f"Plateau de la partie {self.partie.nom}"

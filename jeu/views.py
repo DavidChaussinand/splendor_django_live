@@ -280,15 +280,21 @@ class CreerPartieView(LoginRequiredMixin, View):
         for couleur, quantite in couleurs_quantites.items():
             Jeton.objects.create(couleur=couleur, quantite=quantite, plateau=plateau)
 
-        # Sélectionner les cartes du niveau 1 pour la pile et en afficher 4 sur le plateau
-        toutes_les_cartes_niveau_1 = list(Carte.objects.filter(niveau=1))
-        cartes_pile_niveau_1 = sample(toutes_les_cartes_niveau_1, len(toutes_les_cartes_niveau_1))  # Mélanger les cartes de niveau 1
-        cartes_plateau = cartes_pile_niveau_1[:4]  # Prendre les 4 premières cartes pour le plateau
-        plateau.cartes.set(cartes_plateau)  # Associer ces cartes au plateau
+        # Pile et affichage sur le plateau pour chaque niveau de carte
+        for niveau in [1, 2, 3]:
+            toutes_les_cartes_niveau = list(Carte.objects.filter(niveau=niveau))
+            cartes_pile_niveau = sample(toutes_les_cartes_niveau, len(toutes_les_cartes_niveau))
 
-        # Ajouter les cartes restantes de la pile dans `cartes_pile_niveau_1`
-        cartes_restantes_pile_niveau_1 = cartes_pile_niveau_1[4:]
-        plateau.cartes_pile_niveau_1.set(cartes_restantes_pile_niveau_1)  # Enregistrer la pile restante
+            # Ajoute les 4 premières cartes de chaque niveau au plateau
+            plateau.cartes.add(*cartes_pile_niveau[:4])
+
+            # Ajoute le reste des cartes dans les piles correspondantes
+            if niveau == 1:
+                plateau.cartes_pile_niveau_1.set(cartes_pile_niveau[4:])
+            elif niveau == 2:
+                plateau.cartes_pile_niveau_2.set(cartes_pile_niveau[4:])
+            elif niveau == 3:
+                plateau.cartes_pile_niveau_3.set(cartes_pile_niveau[4:])
 
         message = "La partie a été créée avec succès."
         parties = Partie.objects.all()
@@ -313,11 +319,21 @@ class GameView(LoginRequiredMixin, View):
         plateau = partie.plateau
         jetons = plateau.jetons.all()
         plateau_jetons = {jeton.couleur: jeton.quantite for jeton in jetons}
-        cartes_plateau = plateau.cartes.all()
-        cartes_pile_niveau_1 = plateau.cartes_pile_niveau_1.all()  # Récupérer les cartes de la pile de niveau 1
+        # Cartes visibles par niveau
+        cartes_plateau_niveau_1 = plateau.cartes.filter(niveau=1)
+        cartes_plateau_niveau_2 = plateau.cartes.filter(niveau=2)
+        cartes_plateau_niveau_3 = plateau.cartes.filter(niveau=3)
 
-        # Obtenir les adversaires
+        
+        cartes_pile_niveau_1 = plateau.cartes_pile_niveau_1.all()  # Récupérer les cartes de la pile de niveau 1
+        cartes_pile_niveau_2 = plateau.cartes_pile_niveau_2.all()
+        cartes_pile_niveau_3 = plateau.cartes_pile_niveau_3.all()
+
+        # Obtenir les adversaires et convertir leurs cartes réservées en listes
+        # Obtenir les adversaires et les cartes réservées comme liste
         adversaires = JoueurPartie.objects.filter(partie=partie).exclude(joueur=request.user)
+        for adversaire in adversaires:
+            adversaire.cartes_reservees_list = list(adversaire.cartes_reservees.all())  # Convertir en liste pour le template
 
         current_player = partie.joueur_courant
 
@@ -327,8 +343,12 @@ class GameView(LoginRequiredMixin, View):
             'joueur_courant': joueur_courant,
             'adversaires': adversaires,
             'plateau': plateau_jetons,
-            'cartes_plateau': cartes_plateau,
+            'cartes_plateau_niveau_1': cartes_plateau_niveau_1,
+            'cartes_plateau_niveau_2': cartes_plateau_niveau_2,
+            'cartes_plateau_niveau_3': cartes_plateau_niveau_3,
             'cartes_pile_niveau_1': cartes_pile_niveau_1,  # Ajouter cette variable pour le template
+            'cartes_pile_niveau_2': cartes_pile_niveau_2,
+            'cartes_pile_niveau_3': cartes_pile_niveau_3,
             'current_player': current_player,
         }
         return render(request, 'jeu_templates/game.html', context)
