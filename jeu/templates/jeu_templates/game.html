@@ -3,20 +3,16 @@
 
 {% block title %}Partie : {{ nom_partie }}{% endblock %}
 
+
+{% block header %}{% endblock %}
+{% block footer %}{% endblock %}
+
 {% block content %}
     <link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}">
-    <p class="display-4">Partie : {{ nom_partie }}</p>
-    <p id="current_player">C'est au tour de : {{ current_player.username }}</p>
 
-    <div id="message-container"></div>
-    
-    <!-- Bouton de réinitialisation de la partie -->
-    
-    <button id="reset-game" data-url="{% url 'reset_game' partie.id %}">Réinitialiser la partie</button>
-    
-  
-    <!-- Modal de défausse des jetons -->
-    <div class="modal fade" id="discardTokensModal" tabindex="-1" aria-labelledby="discardTokensModalLabel" aria-hidden="true">
+
+     <!-- Modal de défausse des jetons -->
+     <div class="modal fade" id="discardTokensModal" tabindex="-1" aria-labelledby="discardTokensModalLabel" aria-hidden="true">
         <div class="modal-dialog">
           <div class="modal-content">
             <div class="modal-header">
@@ -31,98 +27,109 @@
           </div>
         </div>
       </div>
-  
 
+<div class= "container_splendor">
+    
 
-    <!-- Affichage du nombre de joueurs -->
-    <div>
+    <div class="info_layout">
+        <p class="display-4">Partie : {{ nom_partie }}</p>
+        <p id="current_player">C'est au tour de : {{ current_player.username }}</p>
+        <div id="message-container"></div>
         <h3>Nombre de joueurs : {{ partie.joueurs.count }} / {{ partie.nombre_joueurs }}</h3>
+        <button id="reset-game" data-url="{% url 'reset_game' partie.id %}">Réinitialiser la partie</button>
     </div>
+      
 
-
-    <div class="plateau">
-        <div class="jetons">
-            {% for couleur, quantite in plateau.items %}
-                <div id="plateau-{{ couleur }}-quantite" class="jeton {{ couleur }}" data-color="{{ couleur }}">
-                    {{ couleur }}: <span>{{ quantite }}</span>
-                </div>
-            {% endfor %}
-        </div>
-        <button id="prendre-deux-jetons">Prendre 2 jetons de la couleur sélectionnée</button>
-        <button id="prendre-trois-jetons">Prendre 3 jetons différents</button>
-        <div class="clear"></div>
+    <div class="jeton_layout"> 
+        <button id="prendre-deux-jetons" class="bouton-action">Prendre 2 jetons identiques</button>
+        
+        
+        {% for couleur, quantite in plateau.items %}
+            <button class="jeton btn-custom btn-{{ couleur }}" type="button" id="plateau-{{ couleur }}-quantite" data-color="{{ couleur }}">
+                {{ couleur|title }}: <span>{{ quantite }}</span>
+            </button>
+        {% endfor %}
+        
+        <button id="prendre-trois-jetons" class="bouton-action">Prendre 3 jetons différents</button>
+    </div>
+    
+        
         <!-- Affichage des cartes du plateau -->
-        <div class="plateau">
-            <div class="cartes-plateau row justify-content-between">
-                <!-- Pile de carte à gauche -->
-                <div class="col-md-2 mb-4">
-                    <div class="pile-de-carte">
-                        <img src="/static/images/cartes/fond_de_carte_rouge.jpg" class="card-img-pile" alt="Pile de cartes">
-                        <p>Il reste {{ cartes_pile_niveau_1|length }} carte(s)</p>
-                    </div>
-                </div>
-                
-                <!-- Cartes visibles sur le plateau -->
-                {% for carte in cartes_plateau_niveau_1  %}
+
+        <div class="plateau_layout">
+            <div class="plateau">
+                <div class="cartes-plateau cartes-plateau-niveau-1 row justify-content-between">
+                    <!-- Pile de carte à gauche -->
                     <div class="col-md-2 mb-4">
-                        <div class="carte card" data-id="{{ carte.id }}">
-                            <img src="/static/{{ carte.image_path }}" class="card-img-top" alt="Image de la carte">
-        
-                            <div class="card-footer">
-                                <button class="btn btn-warning reserver-carte-btn" data-id="{{ carte.id }}">Réserver</button>
-                            </div>
+                        <div class="pile-de-carte">
+                            <img src="/static/images/cartes/fond_de_carte_rouge.jpg" class="card-img-pile" alt="Pile de cartes">
+                            <p>Il reste {{ cartes_pile_niveau_1|length }} carte(s)</p>
                         </div>
                     </div>
-                {% endfor %}
-            </div>
-            <div class="cartes-plateau row justify-content-between">
-                <!-- Pile de carte à gauche -->
-                <div class="col-md-2 mb-4">
-                    <div class="pile-de-carte">
-                        <img src="/static/images/cartes/fond_de_carte_jaune.jpg" class="card-img-pile" alt="Pile de cartes">
-                        <p>Il reste {{ cartes_pile_niveau_2|length }} carte(s)</p>
-                    </div>
-                </div>
-                
-                <!-- Cartes visibles sur le plateau -->
-                {% for carte in cartes_plateau_niveau_2 %}
-                    <div class="col-md-2 mb-4">
-                        <div class="carte card" data-id="{{ carte.id }}">
-                            <img src="/static/{{ carte.image_path }}" class="card-img-top" alt="Image de la carte">
-        
-                            <div class="card-footer">
-                                <button class="btn btn-warning reserver-carte-btn" data-id="{{ carte.id }}">Réserver</button>
-                            </div>
-                        </div>
-                    </div>
-                {% endfor %}
-            </div>
-            <div class="cartes-plateau row justify-content-between">
-                <!-- Pile de carte à gauche -->
-                <div class="col-md-2 mb-4">
-                    <div class="pile-de-carte">
-                        <img src="/static/images/cartes/fond_de_carte_orange.jpg" class="card-img-pile" alt="Pile de cartes">
-                        <p>Il reste {{ cartes_pile_niveau_3|length }} carte(s)</p>
-                    </div>
-                </div>
-                
-                <!-- Cartes visibles sur le plateau -->
-                {% for carte in cartes_plateau_niveau_3 %}
-                    <div class="col-md-2 mb-4">
-                        <div class="carte card" data-id="{{ carte.id }}">
-                            <img src="/static/{{ carte.image_path }}" class="card-img-top" alt="Image de la carte">
-        
-                            <div class="card-footer">
-                                <button class="btn btn-warning reserver-carte-btn" data-id="{{ carte.id }}">Réserver</button>
-                            </div>
-                        </div>
-                    </div>
-                {% endfor %}
-            </div>
+                    
+                    <!-- Cartes visibles sur le plateau -->
+                    {% for carte in cartes_plateau_niveau_1  %}
+                        <div class="col-md-2 mb-4">
+                            <div class="carte card" data-id="{{ carte.id }}">
+                                <img src="/static/{{ carte.image_path }}" class="card-img-top" alt="Image de la carte">
             
+                                <div class="card-footer">
+                                    <button class="btn btn-warning reserver-carte-btn" data-id="{{ carte.id }}">Réserver</button>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="cartes-plateau cartes-plateau-niveau-2 row justify-content-between">
+                    <!-- Pile de carte à gauche -->
+                    <div class="col-md-2 mb-4">
+                        <div class="pile-de-carte">
+                            <img src="/static/images/cartes/fond_de_carte_jaune.jpg" class="card-img-pile" alt="Pile de cartes">
+                            <p>Il reste {{ cartes_pile_niveau_2|length }} carte(s)</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Cartes visibles sur le plateau -->
+                    {% for carte in cartes_plateau_niveau_2 %}
+                        <div class="col-md-2 mb-4">
+                            <div class="carte card" data-id="{{ carte.id }}">
+                                <img src="/static/{{ carte.image_path }}" class="card-img-top" alt="Image de la carte">
+            
+                                <div class="card-footer">
+                                    <button class="btn btn-warning reserver-carte-btn" data-id="{{ carte.id }}">Réserver</button>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="cartes-plateau cartes-plateau-niveau-3 row justify-content-between">
+                    <!-- Pile de carte à gauche -->
+                    <div class="col-md-2 mb-4">
+                        <div class="pile-de-carte">
+                            <img src="/static/images/cartes/fond_de_carte_orange.jpg" class="card-img-pile" alt="Pile de cartes">
+                            <p>Il reste {{ cartes_pile_niveau_3|length }} carte(s)</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Cartes visibles sur le plateau -->
+                    {% for carte in cartes_plateau_niveau_3 %}
+                        <div class="col-md-2 mb-4">
+                            <div class="carte card" data-id="{{ carte.id }}">
+                                <img src="/static/{{ carte.image_path }}" class="card-img-top" alt="Image de la carte">
+            
+                                <div class="card-footer">
+                                    <button class="btn btn-warning reserver-carte-btn" data-id="{{ carte.id }}">Réserver</button>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                
+            </div>
         </div>
+     
         
-    </div>
+    
 
 
 
@@ -130,97 +137,192 @@
 
 
     <!-- Informations des joueurs -->
-    <div class="joueur">
-        <h2>{{ joueur_courant.joueur.username }} (Vous)</h2>
-        <p>Points de victoire : {{ joueur_courant.points_victoire }}</p>
-        <!-- Jetons -->
-        <h3>Vos jetons :</h3>
-        {% with username=joueur_courant.joueur.username|slugify %}
-            <ul id="joueur-jetons-{{ username }}">
-                {% for couleur, quantite in joueur_courant.jetons.items %}
-                    {% if quantite > 0 %}
-                        <li id="joueur-jetons-{{ username }}-{{ couleur }}">
-                            {{ couleur|capfirst }} : <span>{{ quantite }}</span>
-                        </li>
-                    {% endif %}
-                {% endfor %}
-            </ul>
-        {% endwith %}
+<!-- Informations des joueurs -->
+    <div class="adversaire_layout">
+        {% for adversaire in adversaires %}
+        <div class="adversaire-mg">
         
+            <!-- Avatar et points de victoire -->
+            <div class="rectangle">
+                <div class="avatar-container">
+                    {% if forloop.counter == 1 %}
+                        <img src="{% static 'images/players/vegetoo.jpg' %}" alt="Avatar de {{ adversaire.joueur.username }}" class="avatar">
+                    {% elif forloop.counter == 2 %}
+                        <img src="{% static 'images/players/buu.jpg' %}" alt="Avatar de {{ adversaire.joueur.username }}" class="avatar">
+                    {% elif forloop.counter == 3 %}
+                        <img src="{% static 'images/players/vege.jpg' %}" alt="Avatar de {{ adversaire.joueur.username }}" class="avatar">
+                    {% else %}
+                        <img src="{% static 'images/players/default.jpg' %}" alt="Avatar de {{ adversaire.joueur.username }}" class="avatar">
+                    {% endif %}
+    
+                    <div class="points-container">
+                        <p class="points-text" id="joueur-points-{{ adversaire.joueur.username }}">{{ adversaire.points_victoire }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Nom du joueur et jetons -->
+            <div class="trapezoid-rectangle">
+                <h2 class="title">{{ adversaire.joueur.username }}</h2>
+                
+                <!-- Jetons du joueur -->
+                <div class="button-container" id="joueur-jetons-{{ adversaire.joueur.username }}">
+                    {% for couleur, quantite in adversaire.jetons.items %}
+                        <button class="btn-custom btn-{{ couleur }} btn-small" id="joueur-jetons-{{ adversaire.joueur.username }}-{{ couleur }}" type="button">
+                            <span>{{ quantite }}</span>
+                        </button>
+                    {% endfor %}
+                </div>
+                
+                <!-- Bonus du joueur -->
+                <div class="button-container_bonus" id="joueur-bonus-list-{{ adversaire.joueur.username }}">
+                    {% for couleur, quantite in adversaire.bonus.items %}
+                        <button class="btn-custom btn-{{ couleur }}_bonus btn-small_bonus" id="joueur-bonus-{{ adversaire.joueur.username }}-{{ couleur }}" type="button">
+                            <span>{{ quantite }}</span>
+                        </button>
+                    {% endfor %}
+                </div>
+                
+                <!-- Cartes réservées -->
+                <div class="card-container" id="joueur-cartes-reservees-{{ adversaire.joueur.username }}">
+                    {% for carte in adversaire.cartes_reservees_list %}
+                        <p class="{% if forloop.counter == 1 %}start{% elif forloop.counter == 2 %}center{% elif forloop.counter == 3 %}end{% endif %}">
+                            carte niveau {{ carte.niveau }}
+                        </p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
 
-       
-        <!-- Bonus -->
-        <h3>Vos bonus :</h3>
-        <ul id="joueur-bonus-list-{{ joueur_courant.joueur.username }}" class="d-inline-flex flex-wrap list-unstyled">
-            {% for couleur, bonus in joueur_courant.bonus.items %}
-                <li id="joueur-bonus-{{ joueur_courant.joueur.username }}-{{ couleur }}" class="m-2">
-                    <strong>{{ couleur|capfirst }}</strong> : <span>{{ bonus }}</span>
-                </li>
-            {% endfor %}
-        </ul>
+    
 
-        <!-- Cartes achetées -->
-        <h3>Cartes achetées :</h3>
-        <ul id="joueur-cartes-achetees-{{ joueur_courant.joueur.username }}" class="d-inline-flex flex-wrap list-unstyled">
-            {% if joueur_courant.cartes_achetees.all %}
-                {% for carte in joueur_courant.cartes_achetees.all %}
-                    <li class="m-2">
-                        <img src="/static/{{ carte.image_path }}" class="card-img-top" alt="Image de la carte" style="width: 100px; height: 120px;">
-                        <p>{{ carte.niveau }} - {{ carte.bonus }} - {{ carte.points_victoire }} points</p>
-                    </li>
-                {% endfor %}
-            {% else %}
-                <li class="m-2">
-                    <p>Aucune carte achetée</p>
-                </li>
-            {% endif %}
-        </ul>
-
-
-     
-        <!-- Cartes réservées -->
-        <h3>Cartes réservées :</h3>
-        <ul id="joueur-cartes-reservees-{{ joueur_courant.joueur.username }}" data-username="{{ joueur_courant.joueur.username }}" class="d-inline-flex flex-wrap list-unstyled">
-            {% if joueur_courant.cartes_reservees.all %}
-                {% for carte in joueur_courant.cartes_reservees.all %}
-                    <li class="m-2">
-                        <img src="/static/{{ carte.image_path }}" class="card-img-top carte-img" alt="Image de la carte" style="width: 100px; height: 120px;" data-id="{{ carte.id }}">
-                    </li>
-                {% endfor %}
-            {% else %}
-                <li class="m-2">
-                    <p>Aucune carte réservée</p>
-                </li>
-            {% endif %}
-        </ul>
+    <div class="player_local_layout">
+        <div class="mg">
+          
+            <!-- Avatar et points de victoire -->
+            <div class="rectangle_player">
+                <div class="avatar-container">
+                    <img src="{% static 'images/players/gohan.png' %}" alt="Avatar de {{ joueur_courant.joueur.username }}" class="avatar">
+                    <div class="points-container">
+                        <p class="points-text" id="joueur-points-{{ joueur_courant.joueur.username }}">{{ joueur_courant.points_victoire }}</p>
+                    </div>
+                    
+                </div>
+            </div>
+            
+            <!-- Informations du joueur, jetons et bonus -->
+            <div class="trapezoid-rectangle_player">
+                <h2 class="title">{{ joueur_courant.joueur.username }} </h2>
+    
+                <!-- Affichage des jetons -->
+                <div class="button-container" id="joueur-jetons-{{ joueur_courant.joueur.username }}">
+                    {% for couleur, quantite in joueur_courant.jetons.items %}
+                        <button class="btn-custom btn-{{ couleur }} btn-small" id="joueur-jetons-{{ joueur_courant.joueur.username }}-{{ couleur }}" type="button">
+                            <span>{{ quantite }}</span>
+                        </button>
+                    {% endfor %}
+                </div>
+    
+                <!-- Affichage des bonus -->
+                <div class="button-container_bonus" id="joueur-bonus-list-{{ joueur_courant.joueur.username }}">
+                    {% for couleur, bonus in joueur_courant.bonus.items %}
+                        <button class="btn-custom btn-{{ couleur }}_bonus btn-small_bonus" id="joueur-bonus-{{ joueur_courant.joueur.username }}-{{ couleur }}" type="button">
+                            <span>{{ bonus }}</span>
+                        </button>
+                    {% endfor %}
+                </div>
+    
+                <!-- Cartes réservées avec bouton pour les afficher -->
+                <div class="card-container">
+                    <div class="lex">
+                        <!-- Bouton Voir cartes achetées -->
+                        <button class="see-carte-achetée" onclick="toggleCarteAchetee()">Voir cartes achetées</button>
+                        
+                        <!-- Conteneur pour les cartes réservées -->
+                        <div class="cartes-reservees-container" id="joueur-cartes-reservees-{{ joueur_courant.joueur.username }}">
+                            {% for carte in joueur_courant.cartes_reservees.all %}
+                                <img src="/static/{{ carte.image_path }}" alt="Carte réservée" class="img-carte-reservées" data-id="{{ carte.id }}">
+                            {% empty %}
+                                <p>Aucune carte réservée</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
     </div>
     
-    {% for adversaire in adversaires %}
-        <div class="joueur">
-            <h2>{{ adversaire.joueur.username }}</h2>
-            <p>Points de victoire : {{ adversaire.points_victoire }}</p>
-            <h3>Ses jetons :</h3>
-            <ul>
-                {% for couleur, quantite in adversaire.jetons.items %}
-                    <li id="joueur-jetons-{{ adversaire.joueur.username }}-{{ couleur }}">{{ couleur }} : <span>{{ quantite }}</span></li>
-                {% endfor %}
-            </ul>
-            
-            <h3>Ses bonus :</h3>
-            <ul>
-                {% for couleur, quantite in adversaire.bonus.items %}
-                    <li>{{ couleur }} : {{ quantite }}</li>
-                {% endfor %}
-            </ul>
+     <script>
+        function toggleCarteAchetee() {
+            const modal = document.getElementById("carteAcheteeModal");
+            if (modal) {
+                modal.classList.toggle("show");
+            } else {
+                console.error("L'élément carteAcheteeModal n'a pas été trouvé.");
+            }
+        }
+    </script>
+    
+    
+   
+    
 
-            <h3>Cartes Réservées :</h3>
-            <ul>
-                {% for carte in adversaire.cartes_reservees_list %}
-                    <li>Niveau {{ carte.niveau }} </li>
-                {% endfor %}
-            </ul>
+</div>
+
+<div id="carteAcheteeModal" class="modal-overlay">
+    <div class="modal-content">
+        <h3>Cartes achetées</h3>
+        <div id="cartesAcheteesContainer" class="cartes-achetees-container" data-username="{{ joueur_courant.joueur.username }}">
+            <!-- Les cartes achetées seront ajoutées ici dynamiquement -->
         </div>
-    {% endfor %}
+        <button onclick="toggleCarteAchetee()">Fermer</button>
+    </div>
+</div>
+
+
+
+
+
+
+<script>
+    // Convertir l'objet Python en JSON pour l'utiliser en JavaScript
+    window.cartesAchetees = {{ cartes_achetees|safe }};
+    console.log('Cartes achetées :', window.cartesAchetees);
+
+    function toggleCarteAchetee() {
+        const modal = document.getElementById("carteAcheteeModal");
+        const cartesAcheteesContainer = document.getElementById("cartesAcheteesContainer");
+
+        // Vider le contenu actuel
+        cartesAcheteesContainer.innerHTML = "";
+
+        if (window.cartesAchetees && window.cartesAchetees.length > 0) {
+            window.cartesAchetees.forEach(carte => {
+                console.log('Affichage de la carte :', carte);
+                const imgElement = document.createElement("img");
+                imgElement.src = `/static/${carte.image_path}`;
+                imgElement.alt = `Carte achetée : Niveau ${carte.niveau}`;
+                imgElement.classList.add("img-carte-reservées");
+
+                cartesAcheteesContainer.appendChild(imgElement);
+            });
+        } else {
+            cartesAcheteesContainer.innerHTML = "<p>Aucune carte achetée</p>";
+        }
+
+        modal.classList.toggle("show");
+    }
+
+</script>
+
+
+
+
+
+
 
 
     

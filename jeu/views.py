@@ -336,6 +336,11 @@ class GameView(LoginRequiredMixin, View):
             adversaire.cartes_reservees_list = list(adversaire.cartes_reservees.all())  # Convertir en liste pour le template
 
         current_player = partie.joueur_courant
+        cartes_achetees = [{
+            'id': carte.id,
+            'image_path': carte.image_path,
+            'niveau': carte.niveau
+        } for carte in joueur_courant.cartes_achetees.all()]
 
         context = {
             'nom_partie': partie.nom,
@@ -350,6 +355,8 @@ class GameView(LoginRequiredMixin, View):
             'cartes_pile_niveau_2': cartes_pile_niveau_2,
             'cartes_pile_niveau_3': cartes_pile_niveau_3,
             'current_player': current_player,
+            'cartes_achetees': cartes_achetees,
+            'is_game_page': True,
         }
         return render(request, 'jeu_templates/game.html', context)
 

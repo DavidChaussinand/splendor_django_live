@@ -1,6 +1,6 @@
 // gameLogic.js
 
-import { afficherMessage, updateActionButtons, updateBoardAndPlayerTokensMultiple, updateBoardAndPlayerTokensSingle, updateCurrentPlayer ,updateCartesDisplay,updatePlayerPoints ,updateCartesAchetees ,updateCartesReservees, updatePlateauJetons, updatePlayerTokens, refreshPlayerTokens} from './ui.js';
+import { afficherMessage, updateActionButtons, updateBoardAndPlayerTokensMultiple, updateBoardAndPlayerTokensSingle, updateCurrentPlayer ,updateCartesDisplay,updatePlayerPoints ,updateCartesAchetees ,updateCartesReservees, updatePlateauJetons, updatePlayerTokens, refreshPlayerTokens,updatePlayerBonus} from './ui.js';
 import { WebSocketClient } from './websocket.js';
 
 export class Game {
@@ -86,8 +86,9 @@ export class Game {
                 
                 // Mise à jour des cartes du plateau si nécessaire
                 if (data.cartes) {
-                    updateCartesDisplay(data.cartes, this);
+                    updateCartesDisplay(data.cartes, data.piles_counts, this);
                 }
+                
     
                 // Mise à jour des jetons du joueur
                 updatePlayerTokens(data.joueur, data.jetons);
@@ -103,20 +104,26 @@ export class Game {
                 }
     
                 if (data.action === "acheter_carte") {
-                    this.updatePlayerBonus(data.joueur, data.bonus);
+                    updatePlayerBonus(data.joueur, data.bonus);
                     updatePlayerPoints(data.joueur, data.points_victoire);
                     updateCartesAchetees(data.joueur, data.cartes_achetees);
+                    if (data.joueur === this.monNomUtilisateur) {
+                        window.cartesAchetees = data.cartes_achetees;
+                    }
                     refreshPlayerTokens(data.joueur, data.jetons);
                 }
     
                 if (data.action === "acheter_carte_reservee") {
                     // Mise à jour des cartes achetées et réservées pour les cartes réservées achetées
                     updateCartesAchetees(data.joueur, data.cartes_achetees);
+                    if (data.joueur === this.monNomUtilisateur) {
+                        window.cartesAchetees = data.cartes_achetees;
+                    }
                     updateCartesReservees(data.joueur, data.cartes_reservees);
                     updatePlayerTokens(data.joueur, data.jetons);
                     updatePlateauJetons(data.plateau_jetons);
                     updatePlayerPoints(data.joueur, data.points_victoire);
-                    this.updatePlayerBonus(data.joueur, data.bonus);
+                    updatePlayerBonus(data.joueur, data.bonus);
                     // Réattacher les gestionnaires d'événements si c'est le joueur courant
                     if (data.joueur === this.monNomUtilisateur) {
                         this.attachReservedCardListeners();

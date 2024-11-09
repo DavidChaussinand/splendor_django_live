@@ -199,7 +199,7 @@ class GameConsumer(AsyncWebsocketConsumer):
         bonus = await database_sync_to_async(lambda: joueur_partie.bonus)()
         points_victoire = await database_sync_to_async(lambda: joueur_partie.points_victoire)()
         cartes_achetees = await self.get_cartes_achetees(joueur_partie)
-        cartes_data = await self.get_cartes_data()
+        cartes_data, piles_counts = await self.get_cartes_data()
         plateau_jetons = await database_sync_to_async(lambda: {j.couleur: j.quantite for j in plateau.jetons.all()})()
 
         # Envoyer la mise à jour à tous les clients
@@ -215,6 +215,7 @@ class GameConsumer(AsyncWebsocketConsumer):
                 "points_victoire": points_victoire,
                 "cartes_achetees": cartes_achetees,
                 "cartes": cartes_data,
+                "piles_counts": piles_counts,
                 "plateau_jetons": plateau_jetons,
             }
         )
@@ -243,9 +244,23 @@ class GameConsumer(AsyncWebsocketConsumer):
 
         # Récupérer les données mises à jour du joueur et du plateau
         jetons = await database_sync_to_async(lambda: joueur_partie.jetons)()
+        total_tokens = sum(jetons.values())
+
+        if total_tokens > 10:
+            joueur_partie.tokens_a_defausser = total_tokens - 10
+            await database_sync_to_async(joueur_partie.save)()
+            # Envoyer une notification au joueur pour défausser des jetons
+            await self.send(text_data=json.dumps({
+                "type": "discard_tokens",
+                "message": f"Vous avez {total_tokens} jetons, vous devez défausser {joueur_partie.tokens_a_defausser} jeton(s).",
+                "jetons": jetons,
+                "tokens_to_discard": joueur_partie.tokens_a_defausser,
+            }))
+            return  # Ne pas passer au joueur suivant pour l'instant
+
         cartes_reservees = await self.get_cartes_reservees(joueur_partie)
         plateau_jetons = await database_sync_to_async(lambda: {j.couleur: j.quantite for j in plateau.jetons.all()})()
-        cartes_data = await self.get_cartes_data()
+        cartes_data, piles_counts = await self.get_cartes_data()
 
         # Envoyer la mise à jour à tous les clients
         await self.channel_layer.group_send(
@@ -259,6 +274,7 @@ class GameConsumer(AsyncWebsocketConsumer):
                 "cartes_reservees": cartes_reservees,
                 "plateau_jetons": plateau_jetons,
                 "cartes": cartes_data,
+                "piles_counts": piles_counts,
             }
         )
 
@@ -332,9 +348,14 @@ class GameConsumer(AsyncWebsocketConsumer):
                     'cout': c.cout,
                     'image_path': c.image_path,
                 })
-            return cartes_data
-
+            piles_counts = {
+                'niveau_1': plateau.cartes_pile_niveau_1.count(),
+                'niveau_2': plateau.cartes_pile_niveau_2.count(),
+                'niveau_3': plateau.cartes_pile_niveau_3.count(),
+            }
+            return cartes_data, piles_counts
         return await database_sync_to_async(sync_get_cartes_data)(self.partie.id)
+
 
 
     async def passer_au_joueur_suivant(self):

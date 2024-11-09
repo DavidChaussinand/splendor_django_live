@@ -1,20 +1,15 @@
 /* Style de base pour l'ensemble de la page */
 html, body {
-    height: 250%;
+    height: 100vh;
+    overflow: hidden;
     margin: 0;
     padding: 0;
+    background-color: #bab7b7;
 }
 
-body {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh; /* 100% de la hauteur de la fenêtre */
-}
 
-/* Le contenu principal doit occuper tout l'espace restant */
-main {
-    flex: 1;
-}
+
+
 
 /* Style pour le footer */
 footer {
@@ -61,16 +56,7 @@ footer {
 .jeton.bleu { background-color: blue; }
 .jeton.jaune { background-color: yellow; color: black; }
 
-.joueur {
-    width: 48%;
-    height: 507px;
-    background-color: #ccc;
-    margin: 20px 1%;
-    padding: 10px;
-    float: left;
-    border: 2px solid #000;
-    margin-top: 210px;
-}
+
 
 .noir{
     background: noir;
@@ -88,8 +74,8 @@ footer {
 
 
 .cartes-plateau .carte {
-    width: 193px;
-    height: 300px;
+    width: 166px;
+    height: 243px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -125,14 +111,642 @@ footer {
     width: 100%;  /* Remplir la colonne */
     height: auto;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     margin-top: 50px ;
 }
 
 .card-img-pile {
-    width: 90%; /* Légèrement plus petite pour l'alignement */
+    width: 66%; /* Légèrement plus petite pour l'alignement */
     height: auto;
     object-fit: cover;
     border-radius: 8px;
+}
+
+
+
+
+.game-page main {
+    margin: 0;
+    padding: 0;
+    width: 100vw;
+    height: 100vh;/* Styles spécifiques pour la page de jeu sans les marges et le conteneur de base */
+}
+.container_splendor {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr) 0.5fr 1fr 1fr; /* 6 colonnes de taille égale */
+    grid-template-rows: 0.5fr repeat(5, 1fr); /* première ligne à 0.5fr, les 5 autres à 1fr */
+    gap: 10px; /* espace entre les éléments de la grille, ajustable */
+    width: 100vw; /* 100% de la largeur de la fenêtre */
+    height: 100vh; /* 100% de la hauteur de la fenêtre */
+    margin: 0; /* retirer la marge par défaut */
+    padding: 0; /* retirer le padding par défaut */
+    background-color: darkslategray;
+   
+
+}
+
+.adversaire_layout {
+    grid-column: 1 / 2; /* Colonne 1 */
+    grid-row: 1 / 7; /* De la deuxieme à la sixième ligne */
+    display: flex;
+    flex-direction: column; /* Afficher les adversaires en colonne */
+    gap: 30px; /* Espace entre chaque adversaire */
+    margin-top: 29px;
+}
+.adversaire_layout .joueur {
+    width: 100%; /* Prendre toute la largeur disponible */
+}
+
+.joueur {
+    background-color: #ccc;
+    border: 2px solid #000;
+    padding: 10px;
+    text-align: center;
+    height: 400px;
+}
+
+
+.joueur .jetons-ligne {
+    display: flex; /* Affiche les éléments en ligne */
+    flex-wrap: wrap; /* Permet d’aller à la ligne si nécessaire */
+    gap: 10px; /* Espace entre chaque jeton */
+    list-style-type: none; /* Supprime les puces */
+    padding: 0;
+    margin: 0;
+}
+.joueur .jetons-ligne li {
+    display: flex;
+    align-items: center;
+    font-size: 14px; /* Ajustez la taille du texte */
+}
+
+
+.player_local_layout{
+    grid-column: 2 / 5; /* Occupe la première colonne */
+    grid-row: 7 / 8; 
+    margin-top: -434px;
+    margin-left: 100px;
+}
+
+.plateau_layout {
+    grid-column: 2 / 5; /* De la colonne 2 à la 5 */
+    grid-row: 1 / 6; /* De la ligne 1 à la 6 */
+    
+}
+.plateau {
+    width: 100%; /* Limite la largeur pour s’adapter à la grille */
+    height: 79%;
+}
+
+.cartes-plateau img {
+    max-width: 100%;
+    height: auto; /* Ajuste la hauteur en fonction de la largeur */
+}
+
+.jeton_layout {
+    grid-column: 5 / 6; /* Place tout le groupe dans la colonne 5 */
+    grid-row: 1 / 6; /* Prend les lignes 1 à 6 dans cette colonne */
+    display: grid;
+    grid-template-rows: repeat(8, 1fr); /* Crée 8 rangées égales */
+    gap: 5x;
+    justify-items: center; /* Centre les éléments horizontalement */
+    align-items: center; /* Centre les éléments verticalement */
+    
+}
+
+/* Adaptation de l'élément `.jetons` pour enlever Flex */
+.jetons {
+    width: 100%;
+    height: auto; /* Ajustement pour une hauteur variable en fonction du contenu */
+    background-color: #e0e0e0;
+    border-bottom: 2px solid #000;
+}
+
+/* Les jetons individuels devraient conserver leur style actuel */
+.jeton {
+    width: 94px;
+    height: 119px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    font-size: 24px;
+    color: white;
+    font-weight: bold;
+}
+.bouton-action {
+    width: 110px;
+    height: 100px;
+    border: solid 1px black;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.info_layout{
+    grid-column: 6 / 7; /* Occupe la première colonne */
+    grid-row: 1 / 4; /* Occupe les lignes de 0 à 5 */
+}
+
+
+/************** importation du nouveau css **********************************/
+
+
+
+.btn-custom {
+    display: inline-block;
+    margin: 20px 10px; /* Réduit l'espacement entre les boutons */
+    width: 100px; /* Largeur égale pour des boutons circulaires */
+    height: 100px; /* Hauteur égale pour des boutons circulaires */
+    font-size: 20px;
+    font-weight: bold;
+    color: #333;
+    outline: none;
+    border: none;
+    cursor: pointer;
+    border-radius: 50%; /* Rend les boutons circulaires */
+    position: relative;
+    box-shadow: 0 6px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    line-height: 100px; /* Centre verticalement le texte dans le bouton */
+}
+
+
+/* Styles pour chaque couleur de bouton */
+.btn-rouge {
+    background-color: #fe0303;
+    color: #FFF;
+    box-shadow: 0 6px #d14d4d;
+}
+
+.btn-rouge_bonus {
+    background-color: #c94343;
+    color: #FFF;
+    box-shadow: 0 6px #d14d4d;
+}
+
+.btn-bleu {
+    background-color: #3504bd;
+    color: #FFF;
+    box-shadow: 0 6px #0c79e6;
+}
+
+.btn-bleu_bonus {
+    background-color: #5720ee;
+    color: #FFF;
+    box-shadow: 0 6px #0c79e6;
+}
+
+.btn-vert {
+    background-color: #024402;
+    color: #FFF;
+    box-shadow: 0 6px #167216;
+}
+.btn-vert_bonus {
+    background-color: #0d610d;
+    color: #FFF;
+    box-shadow: 0 6px #167216;
+}
+
+.btn-noir {
+    background-color: #0a0a0a;
+    color: #FFF;
+    box-shadow: 0 6px #222;
+}
+
+.btn-noir_bonus {
+    background-color: #333;
+    color: #FFF;
+    box-shadow: 0 6px #222;
+}
+
+/* Bouton blanc grand */
+.btn-blanc {
+    background-color: #FFF;
+    color: #333;
+    box-shadow: 0 6px #CCC;
+}
+
+.btn-blanc_bonus {
+    background-color: #ebe9e9;
+    color: #333;
+    box-shadow: 0 6px #CCC;
+}
+
+.btn-jaune {
+    background-color: #FFD700;
+    color: #333;
+    box-shadow: 0 6px #C6A100;
+}
+
+/* Effets au survol et au clic pour toutes les couleurs */
+.btn-custom:hover {
+    box-shadow: 0 4px rgba(0, 0, 0, 0.3);
+    top: 2px;
+}
+
+.btn-custom:active {
+    box-shadow: 0 0 rgba(0, 0, 0, 0.3);
+    top: 6px;
+}
+
+.btn-small.btn-jaune {
+    color: #333; /* Texte noir pour le petit bouton jaune */
+}
+
+
+
+/* Bouton blanc petit */
+.btn-small.btn-blanc {
+    background-color: #FFF;
+    color: #333; /* Texte noir pour une meilleure lisibilité */
+    box-shadow: 0 4px #CCC;
+}
+
+
+
+
+
+/*---------------------------deck adversaire---------------------------*/
+.adversaire-mg {
+    width: 500px;
+    height: 325px;
+    position: relative;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    overflow: visible;
+    z-index: 50;
+    background: none; /* On enlève le background ici */
+}
+
+
+.adversaire-mg::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 699px;
+    height: 325px;
+    background-image: url("/static/images/fond-ecran/goku.jpeg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    clip-path: polygon(0px 0%, 435px 0%, 500px 100%, 0 100%);
+    border-radius: 15px; /* Si nécessaire pour correspondre à .mg */
+    z-index: -1; /* Place le pseudo-élément derrière le contenu */
+}
+
+/* Container général */
+.trapezoid-rectangle {
+    width: 600px;
+    height: 300px;
+    clip-path: polygon(0px 0%, 435px 0%, 500px 150%, 0 100%);
+    color: white;
+    font-family: Arial, sans-serif;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border-radius: 10px;
+    
+    background-color: rgba(12, 12, 12, 0.5); /* Couleur de fond semi-transparente */
+}
+
+/* Style pour le titre */
+.title {
+    height: 20%;
+    display: flex;
+    align-items: center;
+    font-family: serif;
+    justify-content: start;
+    color: white;
+    font-size: 1.8em;
+    font-weight: bold;
+    margin: 0;
+    padding-left: 16px;
+}
+
+/* Container des boutons */
+.button-container {
+    height: 37%;
+    display: flex;
+    align-items: center;
+    border: solid 3px #e04c08;
+    margin-top: 5px;
+}
+
+.button-container_bonus{
+    height: 30%;
+    display: flex;
+    align-items: center;
+    
+}
+
+/* Styles individuels des boutons colorés */
+.btn-small {
+    width: 50px;
+    height: 50px;
+    font-size: 20px;
+    font-weight: bold;
+    color: #fff;
+    text-align: center;
+    border-radius: 50%;
+    line-height: 50px;
+    box-shadow: 0 4px rgba(0, 0, 0, 0.3);
+}
+
+
+.btn-small_bonus {
+    display: flex; /* Active le mode flexbox pour le bouton */
+    justify-content: center; /* Centre le contenu horizontalement */
+    align-items: center; /* Centre le contenu verticalement */
+    width: 25px; /* Ajustez selon vos besoins */
+    height: 25px; /* Ajustez selon vos besoins */
+    font-size: 16px; /* Taille de la police pour rendre le texte bien visible */
+    font-weight: bold; /* Optionnel, pour un texte plus accentué */
+    border-radius: 50%; /* Pour des boutons ronds */
+    box-shadow: 0 4px rgba(0, 0, 0, 0.3); /* Légère ombre pour l'effet de profondeur */
+    margin-top: -46px;
+    margin-left: 35px;
+}
+
+/* Partie "Carte" */
+.card-container {
+    margin-left: 14px;
+    height: 66px;
+    color: #fff;
+    display: flex;
+    align-items: start;
+    /* padding-left: 10px; */
+    font-size: 12px;
+    font-weight: bold;
+    flex-direction: column;
+}
+
+
+.start{
+    margin-top: -32px;
+
+}
+.center{
+    align-self:center ;
+    margin-right: 200px;
+    margin-top: -16px;
+}
+.end{
+    align-self: end;
+    margin-right: 200px;
+    margin-top: -16px;
+}
+
+.rectangle {
+    
+    width: 375px;
+    height: 80px;
+    color: white;
+    font-family: Arial, sans-serif;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    padding: 10px 20px;
+    border-radius: 0 10px 0 0;
+    background-color: rgba(12, 12, 12, 0.5);
+    padding-left: 75px;
+    position: relative;
+    overflow: visible;
+}
+
+.avatar-container {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    align-items: center;
+    height: 80px;
+}
+
+.avatar {
+    width: 95px;
+    height: 113px;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    position: absolute;
+    left: -54.5px; /* La moitié de la largeur de l'avatar */
+    top: -44px;
+    z-index: 1000; 
+}
+
+.points-container {
+    padding: 10px 15px;
+    border-radius: 15px;
+    background-color: #f7f4f4;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    margin-left: auto;
+}
+
+.points-text {
+    font-size: 28px;
+    font-weight: bold;
+    color: #0a0903;
+    margin: 0;
+    opacity: 1;
+}
+
+
+
+
+
+/*---------------------------deck joueur---------------------------*/
+.mg {
+    width: 880px;
+    height: 411px;
+    position: relative;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    overflow: visible;
+    z-index: 50;
+    background: none; /* On enlève le background ici */
+}
+
+
+.mg::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1640px;
+    height: 410px;
+    background-image: url("/static/images/fond-ecran/test.jpg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    clip-path: polygon(0px 0%, 825px 0%, 889px 114%, 0 100%);
+    border-radius: 15px;
+    z-index: -1;
+}
+
+
+.rectangle_player {
+    
+    width: 574px;
+    height: 80px;
+    color: white;
+    font-family: Arial, sans-serif;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    padding: 10px 20px;
+    border-radius: 0 10px 0 0;
+    background-color: rgba(12, 12, 12, 0.5);
+    padding-left: 75px;
+    position: relative;
+    overflow: visible;
+}
+
+
+
+/* Container général */
+.trapezoid-rectangle_player {
+    width: 621px;
+    height: 300px;
+    clip-path: polygon(0px 0%, 576px 0%, 641px 260%, 0 100%);
+    color: white;
+    font-family: Arial, sans-serif;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border-radius: 10px;
+    background-color: rgba(12, 12, 12, 0.5);
+
+}
+
+.img-carte-reservées{
+    height: 180px;
+    width: 140px;
+    margin-left: 15px;
+    transition: transform 0.3s ease; /* Durée et type de transition */
+}
+
+.img-carte-reservées:hover {
+    transform: scale(1.5) translateY(-60px); /* Agrandit et déplace vers le haut */
+    z-index: 2000;
+}
+
+
+
+
+.card-container {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    /* Vous pouvez ajuster la hauteur si nécessaire */
+}
+
+
+
+
+
+.center.lex {
+    display: flex;
+    flex-direction: row;
+    height: 100%; /* Assure que le conteneur prend toute la hauteur disponible */
+}
+
+.see-carte-achetée {
+    margin-top: auto;      /* Pousse le bouton vers le bas */
+    align-self: flex-start; /* Aligne le bouton à gauche */
+    width: 60px;
+    height: 60px;
+    background-color: #e04c08;
+    color: white;
+    font-weight: bold;
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 4px 0 #b23a06, 0 6px 10px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+    z-index: 10;
+}
+
+/* Effet d'enfoncement au clic */
+.see-carte-achetée:active {
+    transform: translateY(4px); /* Bouton qui s’enfonce légèrement */
+    box-shadow: 0 2px 0 #b23a06, 0 3px 5px rgba(0, 0, 0, 0.2); /* Réduit l'ombre pour un effet d'appui */
+}
+
+.cartes-reservees-container {
+    margin-top: -110px;
+    margin-left: 63px;
+    display: flex;
+    gap: 10px;
+    justify-content: center; /* Centre les images horizontalement si souhaité */
+}
+
+
+
+
+.carte-achetee-container {
+    opacity: 0;
+    visibility: hidden; /* Masqué par défaut */
+    margin-top: 20px;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.carte-achetee-container.show {
+    opacity: 1;
+    visibility: visible; /* Visible avec la classe 'show' */
+    display: flex; /* Affichage des éléments en ligne */
+}
+
+
+/* Style du fond de la modale */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7); /* Fond semi-transparent */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    z-index: 1000; /* Assurez-vous qu'il est au-dessus des autres éléments */
+}
+
+/* Style de la boîte modale */
+.modal-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    max-width: 800px;
+    text-align: center;
+}
+
+/* Afficher la modale lorsqu'elle a la classe 'show' */
+.modal-overlay.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Style des images dans la modale */
+.modal-content img {
+    width: 150px;
+    height: auto;
+    margin: 10px;
 }
