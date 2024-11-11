@@ -470,3 +470,5 @@ class GameConsumer(AsyncWebsocketConsumer):
 
         # Passer au joueur suivant
         await self.passer_au_joueur_suivant()
+
+

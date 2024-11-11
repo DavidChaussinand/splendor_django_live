@@ -750,3 +750,52 @@ footer {
     height: auto;
     margin: 10px;
 }
+
+
+/**************************** Noble ******************************************/
+.nobles_layout {
+    grid-column: 7   / 8;
+    grid-row: 2 / 6;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: start;
+    padding: 10px;
+    background-color: rgba(255, 255, 255, 0.8); /* Fond blanc avec transparence */
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.nobles-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px; /* Espace entre les nobles */
+    overflow-y: auto; /* Défilement si nécessaire */
+}
+
+.noble {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    width: 120px;
+}
+
+.noble-image {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 6px;
+}
+
+.cout-container {
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    justify-content: center;
+}

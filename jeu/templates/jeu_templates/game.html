@@ -131,7 +131,24 @@
         
     
 
+        <div class="nobles_layout">
+            <h3>Nobles</h3>
+            <div class="nobles-container">
+                {% for noble in nobles %}
+                    <div class="noble">
+                        <img src="/static/{{ noble.image_path }}" class="noble-image" alt="Image du noble">
 
+                        <p>Points: {{ noble.points_de_victoire }}</p>
+                        <div class="cout-container">
+                            {% for couleur, cout in noble.cout.items %}
+                                <p>{{ couleur|title }}: {{ cout }}</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        
 
 
 

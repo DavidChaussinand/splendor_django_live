@@ -11,6 +11,7 @@ class Partie(models.Model):
     joueurs = models.ManyToManyField(User, related_name='parties')
     date_creation = models.DateTimeField(auto_now_add=True)
     joueur_courant = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='parties_en_cours')
+    nobles = models.ManyToManyField('Noble', related_name='parties', blank=True)  # New line added
     
     def joueur_suivant(self):
         # Récupérer la liste des joueurs ordonnée par ordre d'inscription
@@ -92,6 +93,20 @@ class Jeton(models.Model):
             raise ValueError("Pas assez de jetons disponibles.")
         
 
+class Noble(models.Model):
+    nom = models.CharField(max_length=100, unique=True)
+    points_de_victoire = models.PositiveIntegerField()
+    cout = models.JSONField(default=dict)  # Coût en bonus par couleur
+    
+    def __str__(self):
+        return f"Noble: {self.nom} avec {self.points_de_victoire} points"
+    
+    @property
+    def image_path(self):
+        return f"images/nobles/{self.id}.jpg"
+
+
+
 class JoueurPartie(models.Model):
     joueur = models.ForeignKey(User, on_delete=models.CASCADE)
     partie = models.ForeignKey(Partie, on_delete=models.CASCADE, related_name='participants')
@@ -101,7 +116,7 @@ class JoueurPartie(models.Model):
     cartes_achetees = models.ManyToManyField('Carte', related_name='achetees', blank=True)  # Liste vide par défaut
     cartes_reservees = models.ManyToManyField('Carte', related_name='reservees', blank=True)  # Liste vide par défaut
     tokens_a_defausser = models.PositiveIntegerField(default=0)
-
+    nobles_acquis = models.ManyToManyField(Noble, related_name='joueurs', blank=True)
 
     def __str__(self):
         return f"{self.joueur.username} dans {self.partie.nom}"
@@ -299,3 +314,15 @@ class JoueurPartie(models.Model):
             jeton_jaune.save()
         
         self.save()
+
+
+
+    def essayer_acquerir_noble(self, noble):
+        # Check if the player can acquire the noble
+        if all(self.bonus.get(couleur, 0) >= cout for couleur, cout in noble.cout.items()):
+            # Add the noble to the player's acquired nobles
+            self.nobles_acquis.add(noble)
+            self.points_victoire += noble.points_de_victoire
+            self.save()
+            return True
+        return False

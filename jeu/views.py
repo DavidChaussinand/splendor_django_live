@@ -9,7 +9,7 @@ from .forms import EmailAuthenticationForm
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import authenticate, login
 from .forms import CustomUserCreationForm
-from .models import  Jeton , Partie , Plateau , JoueurPartie ,Carte
+from .models import  Jeton , Partie , Plateau , JoueurPartie ,Carte , Noble
 from .utils import generer_plateau
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -267,6 +267,9 @@ class CreerPartieView(LoginRequiredMixin, View):
         partie.joueurs.add(request.user)
         JoueurPartie.objects.create(joueur=request.user, partie=partie, jetons={"noir": 0, "bleu": 0, "blanc": 0, "rouge": 0, "vert": 0, "jaune": 0})
 
+
+
+
         # Créer le plateau associé à la partie
         plateau = Plateau.objects.create(partie=partie)
 
@@ -295,6 +298,13 @@ class CreerPartieView(LoginRequiredMixin, View):
                 plateau.cartes_pile_niveau_2.set(cartes_pile_niveau[4:])
             elif niveau == 3:
                 plateau.cartes_pile_niveau_3.set(cartes_pile_niveau[4:])
+
+        # Création d'une nouvelle partie ici ...
+        # Assignez des nobles à la partie
+        tous_les_nobles = list(Noble.objects.all())
+        nobles_selectionnes = sample(tous_les_nobles, min(3, len(tous_les_nobles)))  # Par exemple, 3 nobles sélectionnés
+        # Logique pour ajouter ces nobles à la partie, peut-être  une relation `ManyToMany` avec `Partie`
+        partie.nobles.set(nobles_selectionnes)
 
         message = "La partie a été créée avec succès."
         parties = Partie.objects.all()
@@ -329,6 +339,10 @@ class GameView(LoginRequiredMixin, View):
         cartes_pile_niveau_2 = plateau.cartes_pile_niveau_2.all()
         cartes_pile_niveau_3 = plateau.cartes_pile_niveau_3.all()
 
+
+        # Obtenez les nobles liés à la partie
+        nobles = partie.nobles.all()
+
         # Obtenir les adversaires et convertir leurs cartes réservées en listes
         # Obtenir les adversaires et les cartes réservées comme liste
         adversaires = JoueurPartie.objects.filter(partie=partie).exclude(joueur=request.user)
@@ -356,6 +370,7 @@ class GameView(LoginRequiredMixin, View):
             'cartes_pile_niveau_3': cartes_pile_niveau_3,
             'current_player': current_player,
             'cartes_achetees': cartes_achetees,
+            'nobles': nobles,
             'is_game_page': True,
         }
         return render(request, 'jeu_templates/game.html', context)
