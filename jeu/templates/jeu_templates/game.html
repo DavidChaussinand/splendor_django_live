@@ -135,7 +135,7 @@
             <h3>Nobles</h3>
             <div class="nobles-container">
                 {% for noble in nobles %}
-                    <div class="noble">
+                    <div class="noble" data-id="{{ noble.id }}">
                         <img src="/static/{{ noble.image_path }}" class="noble-image" alt="Image du noble">
 
                         <p>Points: {{ noble.points_de_victoire }}</p>
@@ -271,17 +271,11 @@
             </div>
         </div>
     </div>
+
+
     
-     <script>
-        function toggleCarteAchetee() {
-            const modal = document.getElementById("carteAcheteeModal");
-            if (modal) {
-                modal.classList.toggle("show");
-            } else {
-                console.error("L'élément carteAcheteeModal n'a pas été trouvé.");
-            }
-        }
-    </script>
+    
+
     
     
    
@@ -295,9 +289,33 @@
         <div id="cartesAcheteesContainer" class="cartes-achetees-container" data-username="{{ joueur_courant.joueur.username }}">
             <!-- Les cartes achetées seront ajoutées ici dynamiquement -->
         </div>
+
+        <div id="acquired-nobles-section ">
+            <h3>Nobles Acquis</h3>
+            <ul id="acquired-nobles-list">
+                <p>Aucun noble acquis pour le moment</p>
+            </ul>
+        </div>
+        
         <button onclick="toggleCarteAchetee()">Fermer</button>
     </div>
 </div>
+
+
+<!-- In your game.html template -->
+<div id="chooseNobleModal" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Choisissez un noble</h5>
+        </div>
+        <div class="modal-body">
+          <!-- Noble choices will be injected here -->
+        </div>
+      </div>
+    </div>
+  </div>
+  
 
 
 

@@ -214,6 +214,9 @@ class JoueurPartie(models.Model):
 
             self.save()
 
+            # Vérifier l'acquisition de nobles
+            self.verifier_acquisition_noble()
+
     def acheter_carte_reservee(self, carte, plateau):
         # Vérifier si la carte est bien réservée par le joueur
         if carte not in self.cartes_reservees.all():
@@ -293,8 +296,13 @@ class JoueurPartie(models.Model):
         else:
             self.bonus[couleur_bonus] = 1
 
+        
+
         # Sauvegarder les changements finaux
         self.save()
+
+        # Vérifier l'acquisition de nobles
+        self.verifier_acquisition_noble()   
 
             
     def reserver_carte(self, carte, plateau):
@@ -326,3 +334,14 @@ class JoueurPartie(models.Model):
             self.save()
             return True
         return False
+
+
+    def verifier_acquisition_noble(self):
+        nobles_acquis = []
+        nobles_disponibles = self.partie.nobles.all()
+        for noble in nobles_disponibles:
+            if self.essayer_acquerir_noble(noble):
+                self.partie.nobles.remove(noble)
+                self.partie.save()
+                nobles_acquis.append(noble)  # Ajouter le noble acquis à la liste
+        return nobles_acquis

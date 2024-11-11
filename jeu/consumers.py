@@ -1,7 +1,7 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
-from .models import Partie, JoueurPartie, Jeton , Carte
+from .models import Partie, JoueurPartie, Jeton , Carte , Noble
 from .services.jeton_service import JetonService
 from .services.joueur_service import JoueurService
 from .services.partie_service import PartieService
@@ -91,6 +91,10 @@ class GameConsumer(AsyncWebsocketConsumer):
         elif action == "acheter_carte_reservee":
             carte_id = data.get("carte_id")
             await self.handle_acheter_carte_reservee(carte_id)
+        
+        elif action == "choisir_noble":
+            noble_id = data.get("noble_id")
+            await self.handle_choisir_noble(noble_id)
 
 
     async def handle_prendre_2_jetons(self, couleur):
@@ -194,6 +198,21 @@ class GameConsumer(AsyncWebsocketConsumer):
         # Ajouter une nouvelle carte de la pile correspondant au niveau de la carte achetée
         await self.ajouter_carte_nouvelle_pile(carte.niveau)
 
+        # Vérifier l'acquisition de nobles et envoyer les notifications si nécessaire
+        nobles_acquis = await self.get_nobles_acquis(joueur_partie)
+        if nobles_acquis:
+            for noble in nobles_acquis:
+                await self.channel_layer.group_send(
+                    self.partie_group_name,
+                    {
+                        "type": "noble_acquired",
+                        "message": f"{self.user.username} a acquis le noble {noble['nom']}.",
+                        "joueur": self.user.username,
+                        "noble": noble,
+                        "points_victoire": joueur_partie.points_victoire,
+                    }
+                )
+
         # Récupérer les données mises à jour
         jetons = await database_sync_to_async(lambda: joueur_partie.jetons)()
         bonus = await database_sync_to_async(lambda: joueur_partie.bonus)()
@@ -204,21 +223,22 @@ class GameConsumer(AsyncWebsocketConsumer):
 
         # Envoyer la mise à jour à tous les clients
         await self.channel_layer.group_send(
-            self.partie_group_name,
-            {
-                "type": "game_update",
-                "action": "acheter_carte",
-                "message": f"{self.user.username} a acheté la carte {carte_id}.",
-                "joueur": self.user.username,
-                "jetons": jetons,
-                "bonus": bonus,
-                "points_victoire": points_victoire,
-                "cartes_achetees": cartes_achetees,
-                "cartes": cartes_data,
-                "piles_counts": piles_counts,
-                "plateau_jetons": plateau_jetons,
-            }
-        )
+        self.partie_group_name,
+        {
+            "type": "game_update",
+            "action": "acheter_carte",
+            "message": f"{self.user.username} a acheté la carte {carte_id}.",
+            "joueur": self.user.username,
+            "jetons": jetons,
+            "bonus": bonus,
+            "points_victoire": points_victoire,
+            "cartes_achetees": cartes_achetees,
+            "cartes": cartes_data,
+            "piles_counts": piles_counts,
+            "plateau_jetons": plateau_jetons,
+            "nobles_acquis": nobles_acquis,
+        }
+    )
 
         # Passer au joueur suivant
         await self.passer_au_joueur_suivant()
@@ -302,7 +322,19 @@ class GameConsumer(AsyncWebsocketConsumer):
         cartes_achetees = await self.get_cartes_achetees(joueur_partie)
         cartes_reservees = await self.get_cartes_reservees(joueur_partie)
         plateau_jetons = await database_sync_to_async(lambda: {j.couleur: j.quantite for j in plateau.jetons.all()})()
-
+        nobles_acquis = await self.get_nobles_acquis(joueur_partie)
+        if nobles_acquis:
+            for noble in nobles_acquis:
+                await self.channel_layer.group_send(
+                    self.partie_group_name,
+                    {
+                        "type": "noble_acquired",
+                        "message": f"{self.user.username} a acquis le noble {noble['nom']}.",
+                        "joueur": self.user.username,
+                        "noble": noble,
+                        "points_victoire": joueur_partie.points_victoire,
+                    }
+                )
         # Envoyer la mise à jour à tous les clients
         await self.channel_layer.group_send(
             self.partie_group_name,
@@ -317,6 +349,7 @@ class GameConsumer(AsyncWebsocketConsumer):
                 "plateau_jetons": plateau_jetons,
                 "bonus": bonus,
                 "points_victoire": points_victoire,
+                "nobles_acquis": nobles_acquis,  # Ajout des nobles acquis
             }
         )
 
@@ -472,3 +505,79 @@ class GameConsumer(AsyncWebsocketConsumer):
         await self.passer_au_joueur_suivant()
 
 
+    async def check_for_nobles(self, joueur_partie):
+        nobles = await database_sync_to_async(lambda: list(self.partie.nobles.all()))()
+        acquirable_nobles = []
+        player_bonus = joueur_partie.bonus
+        for noble in nobles:
+            if all(player_bonus.get(couleur, 0) >= cout for couleur, cout in noble.cout.items()):
+                acquirable_nobles.append(noble)
+        return acquirable_nobles
+    
+    
+
+    async def acquire_noble(self, joueur_partie, noble):
+        await database_sync_to_async(joueur_partie.nobles_acquis.add)(noble)
+        joueur_partie.points_victoire += noble.points_de_victoire
+        await database_sync_to_async(joueur_partie.save)()
+        await database_sync_to_async(self.partie.nobles.remove)(noble)
+
+
+    async def handle_choisir_noble(self, noble_id):
+        noble = await database_sync_to_async(Noble.objects.get)(id=noble_id)
+        joueur_partie = await database_sync_to_async(JoueurPartie.objects.get)(joueur=self.user, partie=self.partie)
+        # Check if the noble is still available
+        if not await database_sync_to_async(self.partie.nobles.filter(id=noble_id).exists)():
+            await self.send(text_data=json.dumps({"error": "Ce noble n'est plus disponible."}))
+            return
+
+        # Check if the player can acquire this noble
+        can_acquire = await database_sync_to_async(joueur_partie.essayer_acquerir_noble)(noble)
+        if not can_acquire:
+            await self.send(text_data=json.dumps({"error": "Vous ne pouvez pas acquérir ce noble."}))
+            return
+
+        # Remove the noble from the partie's nobles
+        await database_sync_to_async(self.partie.nobles.remove)(noble)
+
+        # Notify clients
+        await self.channel_layer.group_send(
+            self.partie_group_name,
+            {
+                "type": "noble_acquired",
+                "message": f"{self.user.username} a acquis le noble {noble.nom}.",
+                "joueur": self.user.username,
+                "noble": {
+                    "id": noble.id,
+                    "nom": noble.nom,
+                    "points_de_victoire": noble.points_de_victoire,
+                    "image_path": noble.image_path,
+                },
+                "points_victoire": joueur_partie.points_victoire,
+            }
+        )
+
+    async def get_nobles_acquis(self, joueur_partie):
+        def sync_get_nobles_acquis():
+            nobles = joueur_partie.nobles_acquis.all()
+            return [
+                {
+                    "id": noble.id,
+                    "nom": noble.nom,
+                    "points_de_victoire": noble.points_de_victoire,
+                    "image_path": noble.image_path
+                }
+                for noble in nobles
+            ]
+        return await database_sync_to_async(sync_get_nobles_acquis)()
+
+
+
+    async def noble_acquired(self, event):
+        await self.send(text_data=json.dumps({
+            "type": "noble_acquired",
+            "message": event["message"],
+            "joueur": event["joueur"],
+            "noble": event["noble"],
+            "points_victoire": event["points_victoire"],
+        }))

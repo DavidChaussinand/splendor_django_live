@@ -286,3 +286,29 @@ export function updatePlayerBonus(joueur, bonus) {
         console.error(`Liste des bonus non trouvée pour le joueur : ${joueur}`);
     }
 }
+
+
+// ui.js
+
+export function updateNoblesAcquis(nobles) {
+    const noblesList = document.getElementById('acquired-nobles-list');
+    if (!noblesList) {
+        console.error("Element with ID 'acquired-nobles-list' not found.");
+        return;
+    }
+    noblesList.innerHTML = '';
+
+    if (nobles.length > 0) {
+        nobles.forEach(noble => {
+            const nobleItem = document.createElement('li');
+            nobleItem.classList.add('noble-acquis-item');
+            nobleItem.innerHTML = `
+                <img src="/static/${noble.image_path}" alt="${noble.nom}" class="noble-img">
+                <p>${noble.nom} - ${noble.points_de_victoire} points</p>
+            `;
+            noblesList.appendChild(nobleItem);
+        });
+    } else {
+        noblesList.innerHTML = '<p>Aucun noble acquis pour le moment</p>';
+    }
+}

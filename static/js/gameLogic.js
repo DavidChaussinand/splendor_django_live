@@ -1,6 +1,6 @@
 // gameLogic.js
 
-import { afficherMessage, updateActionButtons, updateBoardAndPlayerTokensMultiple, updateBoardAndPlayerTokensSingle, updateCurrentPlayer ,updateCartesDisplay,updatePlayerPoints ,updateCartesAchetees ,updateCartesReservees, updatePlateauJetons, updatePlayerTokens, refreshPlayerTokens,updatePlayerBonus} from './ui.js';
+import { afficherMessage, updateActionButtons, updateBoardAndPlayerTokensMultiple, updateBoardAndPlayerTokensSingle, updateCurrentPlayer ,updateCartesDisplay,updatePlayerPoints ,updateCartesAchetees ,updateCartesReservees, updatePlateauJetons, updatePlayerTokens, refreshPlayerTokens,updatePlayerBonus,updateNoblesAcquis} from './ui.js';
 import { WebSocketClient } from './websocket.js';
 
 export class Game {
@@ -80,6 +80,21 @@ export class Game {
         if (data.type === "discard_tokens") {
             this.showDiscardTokensModal(data.tokens_to_discard, data.jetons);
         }
+
+
+        if (data.type === "choose_noble") {
+            this.showChooseNobleModal(data.nobles);
+        }
+    
+        if (data.type === "noble_acquired") {
+            console.log('Message "noble_acquired" reçu:', data);
+            afficherMessage('info', data.message);
+            updatePlayerPoints(data.joueur, data.points_victoire);
+            this.removeNobleFromBoard(data.noble.id);
+            updateNoblesAcquis(data.nobles_acquis); // Pour mettre à jour la liste des nobles acquis si nécessaire
+        }
+
+
     
         if (data.type === "game_update") {
             if (["acheter_carte", "reserver_carte", "prendre_2_jetons", "prendre_3_jetons", "defausser_jetons", "acheter_carte_reservee"].includes(data.action)) {
@@ -111,6 +126,8 @@ export class Game {
                         window.cartesAchetees = data.cartes_achetees;
                     }
                     refreshPlayerTokens(data.joueur, data.jetons);
+                    // Mise à jour des nobles acquis
+                    updateNoblesAcquis(data.nobles_acquis);
                 }
     
                 if (data.action === "acheter_carte_reservee") {
@@ -128,11 +145,14 @@ export class Game {
                     if (data.joueur === this.monNomUtilisateur) {
                         this.attachReservedCardListeners();
                     }
+                    // Mise à jour des nobles acquis
+                    updateNoblesAcquis(data.nobles_acquis);
                 }
     
                 if (data.action === "defausser_jetons") {
                     afficherMessage('info', `${data.joueur} a défaussé des jetons.`);
                 }
+                
             }
         }
     }
@@ -337,5 +357,68 @@ export class Game {
             });
         });
     }
+
+
+
+    removeNobleFromBoard(nobleId) {
+        console.log('Tentative de suppression du noble avec ID:', nobleId);
+        const nobleElement = document.querySelector(`.noble[data-id="${nobleId}"]`);
+        if (nobleElement) {
+            nobleElement.remove();
+            console.log('Élément du noble supprimé:', nobleElement);
+        } else {
+            console.error('Élément du noble non trouvé avec data-id:', nobleId);
+        }
+    }
+
+
+    showChooseNobleModal(nobles) {
+        const modal = document.getElementById('chooseNobleModal');
+        const modalBody = modal.querySelector('.modal-body');
+        modalBody.innerHTML = '';
+    
+        nobles.forEach(noble => {
+            const nobleDiv = document.createElement('div');
+            nobleDiv.classList.add('noble-choice');
+            nobleDiv.innerHTML = `
+                <img src="/static/${noble.image_path}" alt="${noble.nom}">
+                <p>${noble.nom}</p>
+                <button class="btn btn-primary choose-noble-btn" data-id="${noble.id}">Choisir</button>
+            `;
+            modalBody.appendChild(nobleDiv);
+        });
+    
+        modal.querySelectorAll('.choose-noble-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                const nobleId = button.getAttribute('data-id');
+                this.socketClient.send({
+                    "action": "choisir_noble",
+                    "noble_id": nobleId
+                });
+                $(modal).modal('hide');
+            });
+        });
+    
+        $(modal).modal('show');
+    }
+    
+    updateNoblesAcquis(nobles) {
+        const noblesList = document.getElementById('nobles-acquis-list');
+        noblesList.innerHTML = '';
+    
+        if (nobles.length > 0) {
+            nobles.forEach(noble => {
+                const nobleItem = document.createElement('li');
+                nobleItem.innerHTML = `
+                    <img src="/static/${noble.image_path}" alt="${noble.nom}" class="noble-img">
+                    <p>${noble.nom} - ${noble.points_de_victoire} points</p>
+                `;
+                noblesList.appendChild(nobleItem);
+            });
+        } else {
+            noblesList.innerHTML = '<p>Aucun noble acquis pour le moment</p>';
+        }
+    }
+    
     
 }
