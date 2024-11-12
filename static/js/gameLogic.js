@@ -82,16 +82,17 @@ export class Game {
         }
 
 
-        if (data.type === "choose_noble") {
-            this.showChooseNobleModal(data.nobles);
-        }
-    
         if (data.type === "noble_acquired") {
-            console.log('Message "noble_acquired" reçu:', data);
             afficherMessage('info', data.message);
             updatePlayerPoints(data.joueur, data.points_victoire);
             this.removeNobleFromBoard(data.noble.id);
-            updateNoblesAcquis(data.nobles_acquis); // Pour mettre à jour la liste des nobles acquis si nécessaire
+            if (data.nobles_acquis) {
+                updateNoblesAcquis(data.nobles_acquis);
+            }
+        }
+    
+        if (data.type === "choose_noble") {
+            this.showChooseNobleModal(data.nobles);
         }
 
 
@@ -373,6 +374,7 @@ export class Game {
 
 
     showChooseNobleModal(nobles) {
+        console.log('Affichage de la modale pour choisir un noble:', nobles);
         const modal = document.getElementById('chooseNobleModal');
         const modalBody = modal.querySelector('.modal-body');
         modalBody.innerHTML = '';
@@ -391,16 +393,23 @@ export class Game {
         modal.querySelectorAll('.choose-noble-btn').forEach(button => {
             button.addEventListener('click', () => {
                 const nobleId = button.getAttribute('data-id');
+                console.log(`Noble choisi : ${nobleId}`);
                 this.socketClient.send({
                     "action": "choisir_noble",
                     "noble_id": nobleId
                 });
-                $(modal).modal('hide');
+                // Fermer la modale
+                const modalInstance = new bootstrap.Modal(modal);
+                modalInstance.hide();
             });
         });
     
+        // Afficher la modale avec Bootstrap 4
         $(modal).modal('show');
     }
+    
+    
+    
     
     updateNoblesAcquis(nobles) {
         const noblesList = document.getElementById('nobles-acquis-list');

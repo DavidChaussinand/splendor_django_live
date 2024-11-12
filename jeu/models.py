@@ -325,23 +325,24 @@ class JoueurPartie(models.Model):
 
 
 
-    def essayer_acquerir_noble(self, noble):
-        # Check if the player can acquire the noble
-        if all(self.bonus.get(couleur, 0) >= cout for couleur, cout in noble.cout.items()):
-            # Add the noble to the player's acquired nobles
-            self.nobles_acquis.add(noble)
-            self.points_victoire += noble.points_de_victoire
-            self.save()
-            return True
-        return False
+    
+
 
 
     def verifier_acquisition_noble(self):
-        nobles_acquis = []
+        nobles_acquerables = []
         nobles_disponibles = self.partie.nobles.all()
         for noble in nobles_disponibles:
             if self.essayer_acquerir_noble(noble):
-                self.partie.nobles.remove(noble)
-                self.partie.save()
-                nobles_acquis.append(noble)  # Ajouter le noble acquis à la liste
-        return nobles_acquis
+                nobles_acquerables.append(noble)
+        return nobles_acquerables
+
+    def essayer_acquerir_noble(self, noble):
+        return all(self.bonus.get(couleur, 0) >= cout for couleur, cout in noble.cout.items())
+
+    def acquérir_noble(self, noble):
+        self.nobles_acquis.add(noble)
+        self.points_victoire += noble.points_de_victoire
+        self.partie.nobles.remove(noble)
+        self.save()
+        self.partie.save()

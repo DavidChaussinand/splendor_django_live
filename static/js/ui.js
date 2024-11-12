@@ -290,25 +290,29 @@ export function updatePlayerBonus(joueur, bonus) {
 
 // ui.js
 
-export function updateNoblesAcquis(nobles) {
-    const noblesList = document.getElementById('acquired-nobles-list');
-    if (!noblesList) {
-        console.error("Element with ID 'acquired-nobles-list' not found.");
+export function updateNoblesAcquis(noblesAcquis) {
+    if (!noblesAcquis || !Array.isArray(noblesAcquis)) {
+        console.error('noblesAcquis est undefined ou n\'est pas une liste');
         return;
     }
-    noblesList.innerHTML = '';
 
-    if (nobles.length > 0) {
-        nobles.forEach(noble => {
-            const nobleItem = document.createElement('li');
-            nobleItem.classList.add('noble-acquis-item');
-            nobleItem.innerHTML = `
-                <img src="/static/${noble.image_path}" alt="${noble.nom}" class="noble-img">
-                <p>${noble.nom} - ${noble.points_de_victoire} points</p>
-            `;
-            noblesList.appendChild(nobleItem);
-        });
-    } else {
-        noblesList.innerHTML = '<p>Aucun noble acquis pour le moment</p>';
+    const acquiredNoblesContainer = document.getElementById('acquired-nobles-list');
+    if (!acquiredNoblesContainer) {
+        console.error('Conteneur des nobles acquis non trouvé');
+        return;
     }
+
+    acquiredNoblesContainer.innerHTML = ''; // Vider le contenu actuel
+
+    if (noblesAcquis.length === 0) {
+        acquiredNoblesContainer.innerHTML = '<p>Aucun noble acquis pour le moment</p>';
+        return;
+    }
+
+    noblesAcquis.forEach(noble => {
+        const li = document.createElement('li');
+        li.innerText = `${noble.nom} (${noble.points_de_victoire} points)`;
+        acquiredNoblesContainer.appendChild(li);
+    });
 }
+
