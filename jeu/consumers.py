@@ -109,7 +109,7 @@ class GameConsumer(AsyncWebsocketConsumer):
         jetons_joueur = await database_sync_to_async(lambda: joueur_partie.jetons)()
         plateau_jetons = await database_sync_to_async(lambda: {j.couleur: j.quantite for j in self.partie.plateau.jetons.all()})()
 
-        await self.verifier_et_acquerir_noble(joueur_partie)
+        nobles_acquerables = await self.verifier_et_acquerir_noble(joueur_partie)
 
         total_tokens = sum(jetons_joueur.values())
 
@@ -139,8 +139,9 @@ class GameConsumer(AsyncWebsocketConsumer):
         )
 
 
-        # Passer au joueur suivant
-        await self.passer_au_joueur_suivant()
+        # Passer au joueur suivant si aucun noble à choisir ou si un seul a été acquis
+        if len(nobles_acquerables) <= 1:
+            await self.passer_au_joueur_suivant()
 
     async def handle_prendre_3_jetons(self, couleurs):
         result = await JetonService.prendre_3_jetons_differents(self.partie, self.user, couleurs)
@@ -153,7 +154,7 @@ class GameConsumer(AsyncWebsocketConsumer):
         joueur_partie = await database_sync_to_async(JoueurPartie.objects.get)(joueur=self.user, partie=self.partie)
         jetons_joueur = await database_sync_to_async(lambda: joueur_partie.jetons)()
         plateau_jetons = await database_sync_to_async(lambda: {j.couleur: j.quantite for j in self.partie.plateau.jetons.all()})()
-        await self.verifier_et_acquerir_noble(joueur_partie)
+        nobles_acquerables = await self.verifier_et_acquerir_noble(joueur_partie)
 
         total_tokens = sum(jetons_joueur.values())
 
@@ -183,8 +184,9 @@ class GameConsumer(AsyncWebsocketConsumer):
             }
         )
 
-        # Passer au joueur suivant
-        await self.passer_au_joueur_suivant()
+        # Passer au joueur suivant si aucun noble à choisir ou si un seul a été acquis
+        if len(nobles_acquerables) <= 1:
+            await self.passer_au_joueur_suivant()
    
     async def handle_acheter_carte(self, carte_id):
         carte = await database_sync_to_async(Carte.objects.get)(id=carte_id)
@@ -257,7 +259,7 @@ class GameConsumer(AsyncWebsocketConsumer):
 
         # Ajouter une nouvelle carte de la pile correspondant au niveau de la carte réservée
         await self.ajouter_carte_nouvelle_pile(carte.niveau)
-        await self.verifier_et_acquerir_noble(joueur_partie)
+        nobles_acquerables = await self.verifier_et_acquerir_noble(joueur_partie)
 
         # Récupérer les données mises à jour du joueur et du plateau
         jetons = await database_sync_to_async(lambda: joueur_partie.jetons)()
@@ -297,8 +299,9 @@ class GameConsumer(AsyncWebsocketConsumer):
             }
         )
 
-        # Passer au joueur suivant
-        await self.passer_au_joueur_suivant()
+        # Passer au joueur suivant si aucun noble à choisir ou si un seul a été acquis
+        if len(nobles_acquerables) <= 1:
+            await self.passer_au_joueur_suivant()
 
 
     # Nouvelle méthode dans GameConsumer
@@ -322,7 +325,7 @@ class GameConsumer(AsyncWebsocketConsumer):
         cartes_reservees = await self.get_cartes_reservees(joueur_partie)
         plateau_jetons = await database_sync_to_async(lambda: {j.couleur: j.quantite for j in plateau.jetons.all()})()
 
-        await self.verifier_et_acquerir_noble(joueur_partie)
+        nobles_acquerables = await self.verifier_et_acquerir_noble(joueur_partie)
 
         
         # Envoyer la mise à jour à tous les clients
@@ -343,8 +346,9 @@ class GameConsumer(AsyncWebsocketConsumer):
             }
         )
 
-        # Passer au joueur suivant
-        await self.passer_au_joueur_suivant()
+        # Passer au joueur suivant si aucun noble à choisir ou si un seul a été acquis
+        if len(nobles_acquerables) <= 1:
+            await self.passer_au_joueur_suivant()
 
 
     async def remove_carte_from_plateau(self, carte):

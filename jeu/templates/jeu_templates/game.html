@@ -194,7 +194,7 @@
                 <!-- Bonus du joueur -->
                 <div class="button-container_bonus" id="joueur-bonus-list-{{ adversaire.joueur.username }}">
                     {% for couleur, quantite in adversaire.bonus.items %}
-                        <button class="btn-custom btn-{{ couleur }}_bonus btn-small_bonus" id="joueur-bonus-{{ adversaire.joueur.username }}-{{ couleur }}" type="button">
+                        <button class="btn-custom btn-{{ couleur }}_bonus btn-small_bonus-adversaire" id="joueur-bonus-{{ adversaire.joueur.username }}-{{ couleur }}" type="button">
                             <span>{{ quantite }}</span>
                         </button>
                     {% endfor %}
@@ -290,9 +290,9 @@
             <!-- Les cartes achetées seront ajoutées ici dynamiquement -->
         </div>
 
-        <div id="acquired-nobles-section ">
+        <div id="acquired-nobles-section" data-username="{{ joueur_courant.joueur.username }}">
             <h3>Nobles Acquis</h3>
-            <ul id="acquired-nobles-list">
+            <ul id="acquired-nobles-list" class="d-flex flex-wrap list-unstyled">
                 <p>Aucun noble acquis pour le moment</p>
             </ul>
         </div>

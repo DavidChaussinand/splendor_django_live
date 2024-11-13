@@ -281,6 +281,7 @@ footer {
     box-shadow: 0 6px #d14d4d;
 }
 
+
 .btn-rouge_bonus {
     background-color: #c94343;
     color: #FFF;
@@ -472,9 +473,26 @@ footer {
     font-weight: bold; /* Optionnel, pour un texte plus accentué */
     border-radius: 50%; /* Pour des boutons ronds */
     box-shadow: 0 4px rgba(0, 0, 0, 0.3); /* Légère ombre pour l'effet de profondeur */
-    margin-top: -46px;
+    margin-top: -50px;
     margin-left: 35px;
 }
+
+.btn-small_bonus-adversaire {
+    display: flex; /* Active le mode flexbox pour le bouton */
+    justify-content: center; /* Centre le contenu horizontalement */
+    align-items: center; /* Centre le contenu verticalement */
+    width: 25px; /* Ajustez selon vos besoins */
+    height: 25px; /* Ajustez selon vos besoins */
+    font-size: 16px; /* Taille de la police pour rendre le texte bien visible */
+    font-weight: bold; /* Optionnel, pour un texte plus accentué */
+    border-radius: 50%; /* Pour des boutons ronds */
+    box-shadow: 0 4px rgba(0, 0, 0, 0.3); /* Légère ombre pour l'effet de profondeur */
+    margin-top: -32px;
+    margin-left: 35px;
+}
+
+
+
 
 /* Partie "Carte" */
 .card-container {
@@ -491,18 +509,18 @@ footer {
 
 
 .start{
-    margin-top: -32px;
+    margin-top: 0px;
 
 }
 .center{
     align-self:center ;
     margin-right: 200px;
-    margin-top: -16px;
+    margin-top: -156px;
 }
 .end{
     align-self: end;
     margin-right: 200px;
-    margin-top: -16px;
+    margin-top: -156px;
 }
 
 .rectangle {
@@ -798,4 +816,23 @@ footer {
     flex-direction: column;
     align-items: start;
     justify-content: center;
+}
+
+
+.noble-image {
+    transition: transform 0.3s ease; /* Transition douce pour l'animation */
+}
+
+.noble-image:hover {
+    transform: scale(1.5); /* Mise à l'échelle à 1.5 */
+}
+
+.card-img-pile-reserve {
+    height: 140px;
+    width: 108px;
+    object-fit: cover;
+    object-position: top; /* Affiche le haut de l'image */
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    clip-path: inset(0 0 65% 0); /* Masque les 65% inférieurs de l'image */
 }

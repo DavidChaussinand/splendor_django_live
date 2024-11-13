@@ -87,7 +87,7 @@ export class Game {
             updatePlayerPoints(data.joueur, data.points_victoire);
             this.removeNobleFromBoard(data.noble.id);
             if (data.nobles_acquis) {
-                updateNoblesAcquis(data.nobles_acquis);
+                updateNoblesAcquis(data.nobles_acquis, data.joueur);
             }
         }
     

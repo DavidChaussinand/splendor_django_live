@@ -186,17 +186,54 @@ export function updateCartesReservees(joueur, cartesReservees) {
     const cartesReserveesContainer = document.querySelector(`#joueur-cartes-reservees-${joueur}`);
 
     if (cartesReserveesContainer) {
-        cartesReserveesContainer.innerHTML = ''; // Efface le contenu actuel
+        cartesReserveesContainer.innerHTML = ''; // Vider le contenu actuel
 
         if (cartesReservees.length > 0) {
-            cartesReservees.forEach(carte => {
-                const imgElement = document.createElement('img');
-                imgElement.src = `/static/${carte.image_path}`;
-                imgElement.alt = `Carte réservée`;
-                imgElement.classList.add('img-carte-reservées');
-                imgElement.dataset.id = carte.id;
-                cartesReserveesContainer.appendChild(imgElement);
-            });
+            // Vérifier si le joueur est le joueur actuel
+            if (joueur === monNomUtilisateur) {
+                // Afficher les images des cartes réservées pour le joueur actuel
+                cartesReservees.forEach(carte => {
+                    const imgElement = document.createElement('img');
+                    imgElement.src = `/static/${carte.image_path}`;
+                    imgElement.alt = `Carte réservée`;
+                    imgElement.classList.add('img-carte-reservées');
+                    imgElement.dataset.id = carte.id;
+                    cartesReserveesContainer.appendChild(imgElement);
+                });
+            } else {
+                // Pour les adversaires, afficher une image en fonction du niveau de la carte
+                cartesReservees.forEach((carte, index) => {
+                    const pElement = document.createElement('p');
+            
+                    // Appliquer les classes selon la position de la carte dans la liste
+                    if (index === 0) {
+                        pElement.classList.add('start');
+                    } else if (index === 1) {
+                        pElement.classList.add('center');
+                    } else if (index === 2) {
+                        pElement.classList.add('end');
+                    }
+            
+                    // Créer l'élément image
+                    const imgElement = document.createElement('img');
+                    imgElement.classList.add('card-img-pile-reserve');
+            
+                    // Définir le src de l'image en fonction du niveau de la carte
+                    if (carte.niveau === 1) {
+                        imgElement.src = '/static/images/cartes/fond_de_carte_rouge.jpg';
+                    } else if (carte.niveau === 2) {
+                        imgElement.src = '/static/images/cartes/fond_de_carte_jaune.jpg';
+                    } else if (carte.niveau === 3) {
+                        imgElement.src = '/static/images/cartes/fond_de_carte_orange.jpg';
+                    }
+            
+                    // Ajouter l'image à l'élément p
+                    pElement.appendChild(imgElement);
+            
+                    // Ajouter l'élément p au conteneur
+                    cartesReserveesContainer.appendChild(pElement);
+                });
+            }
         } else {
             cartesReserveesContainer.innerHTML = '<p>Aucune carte réservée</p>';
         }
@@ -204,6 +241,7 @@ export function updateCartesReservees(joueur, cartesReservees) {
         console.error(`Conteneur des cartes réservées non trouvé pour le joueur : ${joueur}`);
     }
 }
+
 
 
 
@@ -290,15 +328,16 @@ export function updatePlayerBonus(joueur, bonus) {
 
 // ui.js
 
-export function updateNoblesAcquis(noblesAcquis) {
+export function updateNoblesAcquis(noblesAcquis, joueur) {
     if (!noblesAcquis || !Array.isArray(noblesAcquis)) {
         console.error('noblesAcquis est undefined ou n\'est pas une liste');
         return;
     }
 
-    const acquiredNoblesContainer = document.getElementById('acquired-nobles-list');
+    // Sélectionnez le conteneur spécifique au joueur actuel
+    const acquiredNoblesContainer = document.querySelector(`#acquired-nobles-section[data-username="${joueur}"] #acquired-nobles-list`);
     if (!acquiredNoblesContainer) {
-        console.error('Conteneur des nobles acquis non trouvé');
+        console.error(`Conteneur des nobles acquis non trouvé pour le joueur ${joueur}`);
         return;
     }
 
@@ -311,8 +350,9 @@ export function updateNoblesAcquis(noblesAcquis) {
 
     noblesAcquis.forEach(noble => {
         const li = document.createElement('li');
-        li.innerText = `${noble.nom} (${noble.points_de_victoire} points)`;
+        li.innerHTML = `<img src="/static/${noble.image_path}" class="noble-image" alt="Image du noble">`;
         acquiredNoblesContainer.appendChild(li);
     });
 }
+
 
