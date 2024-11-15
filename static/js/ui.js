@@ -278,6 +278,7 @@ export function updatePlayerTokens(joueur, jetons) {
             button.classList.add('btn-custom', `btn-${couleur}`, 'btn-small');
             button.id = `joueur-jetons-${joueur}-${couleur}`;
             button.type = 'button';
+            
 
             const span = document.createElement('span');
             span.innerText = quantite;
@@ -313,6 +314,11 @@ export function updatePlayerBonus(joueur, bonus) {
             button.classList.add('btn-custom', `btn-${couleur}_bonus`, 'btn-small_bonus');
             button.id = `joueur-bonus-${joueur}-${couleur}`;
             button.type = 'button';
+
+            // Ajoute une classe supplémentaire si c'est un adversaire
+            if (joueur !== monNomUtilisateur) {
+                button.classList.add('btn-small_bonus-adversaire');
+            }
 
             const span = document.createElement('span');
             span.innerText = quantite;

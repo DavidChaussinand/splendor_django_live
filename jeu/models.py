@@ -54,9 +54,16 @@ class Carte(models.Model):
 class Plateau(models.Model):
     partie = models.OneToOneField(Partie, on_delete=models.CASCADE, related_name='plateau')
     cartes = models.ManyToManyField(Carte, related_name="cartes_visibles")
-    cartes_pile_niveau_1 = models.ManyToManyField(Carte, related_name="cartes_pile_niveau_1")
-    cartes_pile_niveau_2 = models.ManyToManyField(Carte, related_name="cartes_pile_niveau_2")
-    cartes_pile_niveau_3 = models.ManyToManyField(Carte, related_name="cartes_pile_niveau_3")
+    cartes_pile_niveau_1_new = models.ManyToManyField(
+        Carte, through='CartePileNiveau1', related_name='cartes_pile_niveau_1_new'
+    )
+    cartes_pile_niveau_2_new = models.ManyToManyField(
+        Carte, through='CartePileNiveau2', related_name='cartes_pile_niveau_2_new'
+    )
+    cartes_pile_niveau_3_new = models.ManyToManyField(
+        Carte, through='CartePileNiveau3', related_name='cartes_pile_niveau_3_new'
+    )
+
 
 
     def __str__(self):
@@ -152,7 +159,8 @@ class JoueurPartie(models.Model):
                 if jetons_disponibles >= quantite_necessaire:
                     # Le joueur a assez de jetons de cette couleur
                     jetons_utilises[couleur] = quantite_necessaire
-                    jetons_joueur[couleur] -= quantite_necessaire
+                    jetons_joueur[couleur] = jetons_joueur.get(couleur, 0) - quantite_necessaire
+
                 else:
                     # Le joueur n'a pas assez de jetons de cette couleur
                     quantite_a_completer = quantite_necessaire - jetons_disponibles
@@ -346,3 +354,31 @@ class JoueurPartie(models.Model):
         self.partie.nobles.remove(noble)
         self.save()
         self.partie.save()
+
+
+
+
+
+class CartePileNiveau1(models.Model):
+    plateau = models.ForeignKey(Plateau, on_delete=models.CASCADE)
+    carte = models.ForeignKey(Carte, on_delete=models.CASCADE)
+    order = models.PositiveIntegerField()
+
+    class Meta:
+        ordering = ['order']
+
+class CartePileNiveau2(models.Model):
+    plateau = models.ForeignKey(Plateau, on_delete=models.CASCADE)
+    carte = models.ForeignKey(Carte, on_delete=models.CASCADE)
+    order = models.PositiveIntegerField()
+
+    class Meta:
+        ordering = ['order']
+
+class CartePileNiveau3(models.Model):
+    plateau = models.ForeignKey(Plateau, on_delete=models.CASCADE)
+    carte = models.ForeignKey(Carte, on_delete=models.CASCADE)
+    order = models.PositiveIntegerField()
+
+    class Meta:
+        ordering = ['order']

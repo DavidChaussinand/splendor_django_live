@@ -1,6 +1,8 @@
 # fichier jeu/utils.py
 
-from .models import Jeton
+
+from .models import  CartePileNiveau1, CartePileNiveau2, CartePileNiveau3
+from random import sample
 
 # jeu/utils.py
 
@@ -24,3 +26,32 @@ def generer_plateau(nombre_joueurs):
     }
     
     return plateau
+
+
+
+
+def piocher_carte_niveau(plateau, niveau):
+    # Sélectionner la pile de cartes du niveau demandé
+    if niveau == 1:
+        pile = CartePileNiveau1.objects.filter(plateau=plateau).order_by('order')
+    elif niveau == 2:
+        pile = CartePileNiveau2.objects.filter(plateau=plateau).order_by('order')
+    elif niveau == 3:
+        pile = CartePileNiveau3.objects.filter(plateau=plateau).order_by('order')
+    else:
+        return None
+
+    # Vérifier si la pile n'est pas vide
+    if pile.exists():
+        # Prendre la première carte
+        prochaine_carte_relation = pile.first()
+        prochaine_carte = prochaine_carte_relation.carte
+        # Supprimer la carte de la pile
+        prochaine_carte_relation.delete()
+        # Réajuster l'ordre des cartes restantes
+        for index, relation in enumerate(pile[1:]):
+            relation.order = index
+            relation.save()
+        return prochaine_carte
+    else:
+        return None  # Si la pile est vide

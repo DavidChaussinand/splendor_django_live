@@ -5,6 +5,7 @@ from .models import Partie, JoueurPartie, Jeton , Carte , Noble
 from .services.jeton_service import JetonService
 from .services.joueur_service import JoueurService
 from .services.partie_service import PartieService
+from jeu.utils import piocher_carte_niveau
 
 
 class GameConsumer(AsyncWebsocketConsumer):
@@ -204,6 +205,7 @@ class GameConsumer(AsyncWebsocketConsumer):
 
         # Ajouter une nouvelle carte de la pile correspondant au niveau de la carte achetée
         await self.ajouter_carte_nouvelle_pile(carte.niveau)
+       
 
 
 
@@ -376,9 +378,9 @@ class GameConsumer(AsyncWebsocketConsumer):
                     'image_path': c.image_path,
                 })
             piles_counts = {
-                'niveau_1': plateau.cartes_pile_niveau_1.count(),
-                'niveau_2': plateau.cartes_pile_niveau_2.count(),
-                'niveau_3': plateau.cartes_pile_niveau_3.count(),
+                'niveau_1': plateau.cartes_pile_niveau_1_new.count(),
+                'niveau_2': plateau.cartes_pile_niveau_2_new.count(),
+                'niveau_3': plateau.cartes_pile_niveau_3_new.count(),
             }
             return cartes_data, piles_counts
         return await database_sync_to_async(sync_get_cartes_data)(self.partie.id)
@@ -425,14 +427,14 @@ class GameConsumer(AsyncWebsocketConsumer):
         return await database_sync_to_async(sync_get_cartes_achetees)(joueur_partie.id)
     
     async def ajouter_carte_nouvelle_pile(self, niveau):
-        pile_attr = f"cartes_pile_niveau_{niveau}"
-        pile = getattr(self.partie.plateau, pile_attr, None)
-
-        # Vérifier si la pile existe et contient des cartes
-        if pile and await database_sync_to_async(pile.exists)():
-            nouvelle_carte = await database_sync_to_async(pile.first)()
-            await database_sync_to_async(pile.remove)(nouvelle_carte)
+    # Piocher une nouvelle carte du niveau donné en utilisant piocher_carte_niveau
+        nouvelle_carte = await database_sync_to_async(piocher_carte_niveau)(self.partie.plateau, niveau)
+        if nouvelle_carte:
+            # Ajouter la nouvelle carte aux cartes visibles du plateau
             await database_sync_to_async(self.partie.plateau.cartes.add)(nouvelle_carte)
+        else:
+            # Si la pile est vide, vous pouvez gérer ce cas si nécessaire
+            pass
     
 
     async def get_cartes_reservees(self, joueur_partie):

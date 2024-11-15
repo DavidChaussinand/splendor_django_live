@@ -9,7 +9,7 @@ from .forms import EmailAuthenticationForm
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import authenticate, login
 from .forms import CustomUserCreationForm
-from .models import  Jeton , Partie , Plateau , JoueurPartie ,Carte , Noble
+from .models import  Jeton , Partie , Plateau , JoueurPartie ,Carte , Noble ,CartePileNiveau1 , CartePileNiveau2 , CartePileNiveau3
 from .utils import generer_plateau
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -291,14 +291,17 @@ class CreerPartieView(LoginRequiredMixin, View):
             # Ajoute les 4 premières cartes de chaque niveau au plateau
             plateau.cartes.add(*cartes_pile_niveau[:4])
 
-            # Ajoute le reste des cartes dans les piles correspondantes
+            # Ajoute le reste des cartes dans les piles correspondantes avec l'ordre
             if niveau == 1:
-                plateau.cartes_pile_niveau_1.set(cartes_pile_niveau[4:])
+                for index, carte in enumerate(cartes_pile_niveau[4:]):
+                    CartePileNiveau1.objects.create(plateau=plateau, carte=carte, order=index)
             elif niveau == 2:
-                plateau.cartes_pile_niveau_2.set(cartes_pile_niveau[4:])
+                for index, carte in enumerate(cartes_pile_niveau[4:]):
+                    CartePileNiveau2.objects.create(plateau=plateau, carte=carte, order=index)
             elif niveau == 3:
-                plateau.cartes_pile_niveau_3.set(cartes_pile_niveau[4:])
-
+                for index, carte in enumerate(cartes_pile_niveau[4:]):
+                    CartePileNiveau3.objects.create(plateau=plateau, carte=carte, order=index)
+                    
         # Création d'une nouvelle partie ici ...
         # Assignez des nobles à la partie
         tous_les_nobles = list(Noble.objects.all())
@@ -315,47 +318,59 @@ class CreerPartieView(LoginRequiredMixin, View):
 
 class GameView(LoginRequiredMixin, View):
     def get(self, request, nom_partie):
+        # Récupérer la partie par son nom
         partie = get_object_or_404(Partie, nom=nom_partie)
 
+        # Vérifier si l'utilisateur fait partie des joueurs de cette partie
         if request.user not in partie.joueurs.all():
             return redirect('creer_partie')
 
+        # Récupérer le joueur courant ou le créer s'il n'existe pas
         joueur_courant, created = JoueurPartie.objects.get_or_create(
             joueur=request.user,
             partie=partie,
             defaults={'points_victoire': 0, 'jetons': {"noir": 0, "bleu": 0, "blanc": 0, "rouge": 0, "vert": 0, "jaune": 0}}
         )
 
+        # Accéder au plateau de la partie
         plateau = partie.plateau
+
+        # Obtenir les jetons disponibles sur le plateau
         jetons = plateau.jetons.all()
         plateau_jetons = {jeton.couleur: jeton.quantite for jeton in jetons}
-        # Cartes visibles par niveau
+
+        # Récupérer les cartes visibles par niveau
         cartes_plateau_niveau_1 = plateau.cartes.filter(niveau=1)
         cartes_plateau_niveau_2 = plateau.cartes.filter(niveau=2)
         cartes_plateau_niveau_3 = plateau.cartes.filter(niveau=3)
 
-        
-        cartes_pile_niveau_1 = plateau.cartes_pile_niveau_1.all()  # Récupérer les cartes de la pile de niveau 1
-        cartes_pile_niveau_2 = plateau.cartes_pile_niveau_2.all()
-        cartes_pile_niveau_3 = plateau.cartes_pile_niveau_3.all()
+        # Récupérer les piles de cartes en respectant l'ordre aléatoire initial
+        cartes_pile_niveau_1 = [
+            relation.carte for relation in plateau.cartes_pile_niveau_1_new.through.objects.filter(plateau=plateau).order_by('order')
+        ]
+        cartes_pile_niveau_2 = [
+            relation.carte for relation in plateau.cartes_pile_niveau_2_new.through.objects.filter(plateau=plateau).order_by('order')
+        ]
+        cartes_pile_niveau_3 = [
+            relation.carte for relation in plateau.cartes_pile_niveau_3_new.through.objects.filter(plateau=plateau).order_by('order')
+        ]
 
-
-        # Obtenez les nobles liés à la partie
+        # Récupérer les nobles associés à la partie
         nobles = partie.nobles.all()
 
-        # Obtenir les adversaires et convertir leurs cartes réservées en listes
-        # Obtenir les adversaires et les cartes réservées comme liste
+        # Obtenir les informations des adversaires
         adversaires = JoueurPartie.objects.filter(partie=partie).exclude(joueur=request.user)
         for adversaire in adversaires:
-            adversaire.cartes_reservees_list = list(adversaire.cartes_reservees.all())  # Convertir en liste pour le template
+            adversaire.cartes_reservees_list = list(adversaire.cartes_reservees.all())
 
-        current_player = partie.joueur_courant
+        # Obtenir les cartes achetées par le joueur courant
         cartes_achetees = [{
             'id': carte.id,
             'image_path': carte.image_path,
             'niveau': carte.niveau
         } for carte in joueur_courant.cartes_achetees.all()]
 
+        # Préparer le contexte pour le rendu du template
         context = {
             'nom_partie': partie.nom,
             'partie': partie,
@@ -365,17 +380,15 @@ class GameView(LoginRequiredMixin, View):
             'cartes_plateau_niveau_1': cartes_plateau_niveau_1,
             'cartes_plateau_niveau_2': cartes_plateau_niveau_2,
             'cartes_plateau_niveau_3': cartes_plateau_niveau_3,
-            'cartes_pile_niveau_1': cartes_pile_niveau_1,  # Ajouter cette variable pour le template
+            'cartes_pile_niveau_1': cartes_pile_niveau_1,
             'cartes_pile_niveau_2': cartes_pile_niveau_2,
             'cartes_pile_niveau_3': cartes_pile_niveau_3,
-            'current_player': current_player,
+            'current_player': partie.joueur_courant,
             'cartes_achetees': cartes_achetees,
             'nobles': nobles,
             'is_game_page': True,
         }
         return render(request, 'jeu_templates/game.html', context)
-
-
     
 class RejoindrePartieView(LoginRequiredMixin, View):
     def post(self, request, partie_id):
