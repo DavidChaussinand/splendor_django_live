@@ -350,7 +350,11 @@ export class Game {
     }
 
     attachReservedCardListeners() {
-        document.querySelectorAll(`[data-username="${this.monNomUtilisateur}"] .carte-img`).forEach(carte => {
+        const selector = `#joueur-cartes-reservees-${this.monNomUtilisateur} .img-carte-reservées`;
+        console.log(`Sélecteur utilisé pour les cartes réservées : ${selector}`);
+        const reservedCards = document.querySelectorAll(selector);
+        console.log(`Nombre de cartes réservées trouvées : ${reservedCards.length}`);
+        reservedCards.forEach(carte => {
             carte.addEventListener("click", (event) => {
                 const carteId = event.target.getAttribute("data-id");
                 console.log(`Carte réservée cliquée avec l'ID ${carteId}`);
@@ -358,6 +362,7 @@ export class Game {
             });
         });
     }
+    
 
 
 
