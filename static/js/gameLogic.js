@@ -51,6 +51,11 @@ export class Game {
             });
         });
 
+        // Gestionnaires d'événements pour les piles de cartes
+        document.querySelectorAll(".pile-carte").forEach(pile => {
+            pile.addEventListener("click", this.handlePileClick.bind(this));
+        });
+
          // Gestionnaire d'événements pour acheter une carte réservée
         this.attachReservedCardListeners();
     }
@@ -98,7 +103,7 @@ export class Game {
 
     
         if (data.type === "game_update") {
-            if (["acheter_carte", "reserver_carte", "prendre_2_jetons", "prendre_3_jetons", "defausser_jetons", "acheter_carte_reservee"].includes(data.action)) {
+            if (["acheter_carte", "reserver_carte" , "reserver_carte_pile", "prendre_2_jetons", "prendre_3_jetons", "defausser_jetons", "acheter_carte_reservee"].includes(data.action)) {
                 
                 // Mise à jour des cartes du plateau si nécessaire
                 if (data.cartes) {
@@ -112,7 +117,7 @@ export class Game {
                 // Mise à jour des jetons du plateau
                 updatePlateauJetons(data.plateau_jetons);
     
-                if (data.action === "reserver_carte") {
+                if (data.action === "reserver_carte" || data.action === "reserver_carte_pile") {
                     updateCartesReservees(data.joueur, data.cartes_reservees);
                     if (data.joueur === this.monNomUtilisateur) {
                         this.attachReservedCardListeners();
@@ -183,6 +188,19 @@ export class Game {
             this.selectedColors.add(color);
             jeton.classList.add("selected");
         }
+    }
+
+    handlePileClick(event) {
+        const pileElement = event.currentTarget;
+        const niveau = pileElement.getAttribute('data-niveau');
+        this.reserverCarteFromPile(niveau);
+    }
+
+    reserverCarteFromPile(niveau) {
+        this.socketClient.send({
+            "action": "reserver_carte_pile",
+            "niveau": niveau
+        });
     }
 
     prendre2Jetons() {
@@ -266,6 +284,13 @@ export class Game {
         this.socketClient.send({
             "action": "reserver_carte",
             "carte_id": carteId
+        });
+    }
+
+    reserverCarteFromPile(niveau) {
+        this.socketClient.send({
+            "action": "reserver_carte_pile",
+            "niveau": niveau
         });
     }
     

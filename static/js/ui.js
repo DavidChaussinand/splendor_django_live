@@ -65,7 +65,6 @@ export function updateCurrentPlayer(data) {
     }
 }
 
-
 export function updateCartesDisplay(cartes, pilesCounts, gameInstance) {
     console.log("updateCartesDisplay appelé avec cartes :", cartes);
     console.log("updateCartesDisplay appelé avec pilesCounts :", pilesCounts);
@@ -85,33 +84,35 @@ export function updateCartesDisplay(cartes, pilesCounts, gameInstance) {
 
         cartesContainer.innerHTML = ''; // Efface le contenu actuel
 
-        // Ajoutez la pile de cartes
+        // Ajouter la pile de cartes
         const pileDiv = document.createElement('div');
         pileDiv.classList.add('col-md-2', 'mb-4');
 
         let imagePileSrc = '';
         let cartesPileRestantes = 0;
 
+        // Déterminer l'image de la pile et le nombre de cartes restantes
         if (niveau === 1) {
             imagePileSrc = '/static/images/cartes/fond_de_carte_rouge.jpg';
-            cartesPileRestantes = pilesCounts.niveau_1;
+            cartesPileRestantes = pilesCounts.niveau_1; // Nombre de cartes restantes pour le niveau 1
         } else if (niveau === 2) {
             imagePileSrc = '/static/images/cartes/fond_de_carte_jaune.jpg';
-            cartesPileRestantes = pilesCounts.niveau_2;
+            cartesPileRestantes = pilesCounts.niveau_2; // Nombre de cartes restantes pour le niveau 2
         } else if (niveau === 3) {
             imagePileSrc = '/static/images/cartes/fond_de_carte_orange.jpg';
-            cartesPileRestantes = pilesCounts.niveau_3;
+            cartesPileRestantes = pilesCounts.niveau_3; // Nombre de cartes restantes pour le niveau 3
         }
 
+        // Générer le HTML pour la pile de cartes
         pileDiv.innerHTML = `
             <div class="pile-de-carte">
-                <img src="${imagePileSrc}" class="card-img-pile" alt="Pile de cartes">
+                <img src="${imagePileSrc}" class="card-img-pile pile-carte" data-niveau="${niveau}" alt="Pile de cartes">
                 <p>Il reste ${cartesPileRestantes} carte(s)</p>
             </div>
         `;
         cartesContainer.appendChild(pileDiv);
 
-        // Filtrer les cartes du niveau actuel
+        // Filtrer les cartes visibles pour ce niveau
         const cartesNiveau = cartes.filter(carte => carte.niveau === niveau);
 
         // Ajouter les cartes visibles
@@ -129,16 +130,24 @@ export function updateCartesDisplay(cartes, pilesCounts, gameInstance) {
             cartesContainer.appendChild(carteDiv);
         });
 
-        // Réattacher les écouteurs d'événements pour les nouvelles cartes
+        // Réattacher les gestionnaires d'événements pour les nouvelles cartes
         cartesContainer.querySelectorAll(".carte").forEach(carte => {
             carte.addEventListener("click", gameInstance.handleCarteClick.bind(gameInstance));
         });
+
+        // Réattacher les gestionnaires d'événements pour les boutons "Réserver"
         cartesContainer.querySelectorAll(".reserver-carte-btn").forEach(button => {
             button.addEventListener("click", event => {
                 event.stopPropagation();
-                const carteId = button.getAttribute('data-id');
+                const carteId = button.getAttribute("data-id");
                 gameInstance.reserverCarte(carteId);
             });
+        });
+
+        // Réattacher l'événement pour la pile de cartes
+        pileDiv.querySelector(".pile-carte").addEventListener("click", (event) => {
+            const niveauPile = event.currentTarget.getAttribute("data-niveau");
+            gameInstance.reserverCarteFromPile(niveauPile);
         });
     });
 }

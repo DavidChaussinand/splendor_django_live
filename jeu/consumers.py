@@ -1,7 +1,7 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
-from .models import Partie, JoueurPartie, Jeton , Carte , Noble
+from .models import Partie, JoueurPartie, Jeton , Carte , Noble ,CartePileNiveau1 , CartePileNiveau2 ,CartePileNiveau3
 from .services.jeton_service import JetonService
 from .services.joueur_service import JoueurService
 from .services.partie_service import PartieService
@@ -89,6 +89,10 @@ class GameConsumer(AsyncWebsocketConsumer):
             carte_id = data.get("carte_id")
             await self.handle_reserver_carte(carte_id)
 
+        elif action == 'reserver_carte_pile':
+            niveau = data.get('niveau')
+            await self.handle_reserver_carte_pile(niveau)
+
         elif action == "acheter_carte_reservee":
             carte_id = data.get("carte_id")
             await self.handle_acheter_carte_reservee(carte_id)
@@ -97,6 +101,8 @@ class GameConsumer(AsyncWebsocketConsumer):
             noble_id = data.get("noble_id")
             await self.handle_choisir_noble(noble_id)
 
+
+    
 
     async def handle_prendre_2_jetons(self, couleur):
         result = await JetonService.prendre_2_jetons(self.partie, self.user, couleur)
@@ -203,8 +209,9 @@ class GameConsumer(AsyncWebsocketConsumer):
         # Retirer la carte du plateau
         await self.remove_carte_from_plateau(carte)
 
-        # Ajouter une nouvelle carte de la pile correspondant au niveau de la carte achetée
-        await self.ajouter_carte_nouvelle_pile(carte.niveau)
+        # Remplacer la carte sur le plateau
+        await self.remplacer_carte_sur_plateau(plateau, carte.niveau)
+        await database_sync_to_async(plateau.save)()
        
 
 
@@ -259,8 +266,12 @@ class GameConsumer(AsyncWebsocketConsumer):
         # Retirer la carte du plateau
         await self.remove_carte_from_plateau(carte)
 
-        # Ajouter une nouvelle carte de la pile correspondant au niveau de la carte réservée
-        await self.ajouter_carte_nouvelle_pile(carte.niveau)
+        # Remplacer la carte sur le plateau
+        await self.remplacer_carte_sur_plateau(plateau, carte.niveau)
+        # Sauvegarder toutes les modifications du plateau
+        await database_sync_to_async(plateau.save)()
+
+
         nobles_acquerables = await self.verifier_et_acquerir_noble(joueur_partie)
 
         # Récupérer les données mises à jour du joueur et du plateau
@@ -305,6 +316,92 @@ class GameConsumer(AsyncWebsocketConsumer):
         if len(nobles_acquerables) <= 1:
             await self.passer_au_joueur_suivant()
 
+    async def handle_reserver_carte_pile(self, niveau):
+        niveau = int(niveau)
+        joueur_partie = await database_sync_to_async(JoueurPartie.objects.get)(joueur=self.user, partie=self.partie)
+        plateau = await database_sync_to_async(lambda: self.partie.plateau)()
+
+        # Obtenir la prochaine carte de la pile correspondante
+        if niveau == 1:
+            pile_model = CartePileNiveau1
+        elif niveau == 2:
+            pile_model = CartePileNiveau2
+        elif niveau == 3:
+            pile_model = CartePileNiveau3
+        else:
+            await self.send(text_data=json.dumps({"error": "Niveau de pile invalide."}))
+            return
+
+        # Récupérer la prochaine carte de la pile en respectant l'ordre
+        prochaine_carte_relation = await database_sync_to_async(
+            lambda: pile_model.objects.filter(plateau=plateau).order_by('order').first()
+        )()
+
+        if not prochaine_carte_relation:
+            await self.send(text_data=json.dumps({"error": "Il n'y a plus de cartes dans cette pile."}))
+            return
+
+        # Accéder à la carte de manière asynchrone
+        carte = await database_sync_to_async(lambda: prochaine_carte_relation.carte)()
+
+        try:
+            # Réserver la carte et mettre à jour les jetons jaunes
+            await database_sync_to_async(joueur_partie.reserver_carte)(carte, plateau)
+        except ValueError as e:
+            await self.send(text_data=json.dumps({"error": str(e)}))
+            return
+
+        # Retirer la carte de la pile
+        await database_sync_to_async(prochaine_carte_relation.delete)()
+
+        # Mettre à jour le compte des cartes dans la pile
+        # (Si vous affichez le nombre de cartes restantes, assurez-vous de le mettre à jour côté client)
+
+        # Récupérer les données mises à jour
+        jetons = await database_sync_to_async(lambda: joueur_partie.jetons)()
+        total_tokens = sum(jetons.values())
+
+        if total_tokens > 10:
+            joueur_partie.tokens_a_defausser = total_tokens - 10
+            await database_sync_to_async(joueur_partie.save)()
+            # Envoyer une notification au joueur pour défausser des jetons
+            await self.send(text_data=json.dumps({
+                "type": "discard_tokens",
+                "message": f"Vous avez {total_tokens} jetons, vous devez défausser {joueur_partie.tokens_a_defausser} jeton(s).",
+                "jetons": jetons,
+                "tokens_to_discard": joueur_partie.tokens_a_defausser,
+            }))
+            return  # Ne pas passer au joueur suivant pour l'instant
+
+        cartes_reservees = await self.get_cartes_reservees(joueur_partie)
+        plateau_jetons = await database_sync_to_async(lambda: {j.couleur: j.quantite for j in plateau.jetons.all()})()
+        cartes_data, piles_counts = await self.get_cartes_data()
+
+        # Envoyer la mise à jour à tous les clients
+        await self.channel_layer.group_send(
+            self.partie_group_name,
+            {
+                "type": "game_update",
+                "action": "reserver_carte_pile",
+                "message": f"{self.user.username} a réservé une carte de la pile niveau {niveau}.",
+                "joueur": self.user.username,
+                "jetons": jetons,
+                "cartes_reservees": cartes_reservees,
+                "plateau_jetons": plateau_jetons,
+                "cartes": cartes_data,
+                "piles_counts": piles_counts,
+                "nobles_acquis": [],
+            }
+        )
+
+        # Passer au joueur suivant si aucun noble à choisir ou si un seul a été acquis
+        nobles_acquerables = await self.verifier_et_acquerir_noble(joueur_partie)
+
+        if len(nobles_acquerables) <= 1:
+            await self.passer_au_joueur_suivant()
+
+
+
 
     # Nouvelle méthode dans GameConsumer
     async def handle_acheter_carte_reservee(self, carte_id):
@@ -312,7 +409,6 @@ class GameConsumer(AsyncWebsocketConsumer):
         joueur_partie = await database_sync_to_async(JoueurPartie.objects.get)(joueur=self.user, partie=self.partie)
         plateau = await database_sync_to_async(lambda: self.partie.plateau)()
         bonus = await database_sync_to_async(lambda: joueur_partie.bonus)()
-        points_victoire = await database_sync_to_async(lambda: joueur_partie.points_victoire)()
 
         try:
             # Essayer d'acheter la carte réservée
@@ -326,6 +422,7 @@ class GameConsumer(AsyncWebsocketConsumer):
         cartes_achetees = await self.get_cartes_achetees(joueur_partie)
         cartes_reservees = await self.get_cartes_reservees(joueur_partie)
         plateau_jetons = await database_sync_to_async(lambda: {j.couleur: j.quantite for j in plateau.jetons.all()})()
+        points_victoire = await database_sync_to_async(lambda: joueur_partie.points_victoire)()
 
         nobles_acquerables = await self.verifier_et_acquerir_noble(joueur_partie)
 
@@ -647,3 +744,32 @@ class GameConsumer(AsyncWebsocketConsumer):
             "nobles_acquis": event["nobles_acquis"],
             "points_victoire": event["points_victoire"],
         }))
+
+
+
+    async def remplacer_carte_sur_plateau(self, plateau, niveau):
+        # Sélectionnez le modèle de pile correspondant au niveau
+        if niveau == 1:
+            pile_model = CartePileNiveau1
+        elif niveau == 2:
+            pile_model = CartePileNiveau2
+        elif niveau == 3:
+            pile_model = CartePileNiveau3
+        else:
+            # Niveau invalide
+            return
+
+        # Récupérer la prochaine carte de la pile en respectant l'ordre
+        prochaine_carte_relation = await database_sync_to_async(
+            lambda: pile_model.objects.filter(plateau=plateau).order_by('order').first()
+        )()
+
+        if prochaine_carte_relation:
+            # Accéder à la carte de manière asynchrone
+            prochaine_carte = await database_sync_to_async(lambda: prochaine_carte_relation.carte)()
+            # Ajouter la carte aux cartes visibles du plateau
+            await database_sync_to_async(plateau.cartes.add)(prochaine_carte)
+            # Supprimer l'entrée de la pile sans modifier l'ordre des autres cartes
+            await database_sync_to_async(prochaine_carte_relation.delete)()
+            # Sauvegarder les changements du plateau
+            await database_sync_to_async(plateau.save)()

@@ -355,6 +355,7 @@ class GameView(LoginRequiredMixin, View):
             relation.carte for relation in plateau.cartes_pile_niveau_3_new.through.objects.filter(plateau=plateau).order_by('order')
         ]
 
+    
         # Récupérer les nobles associés à la partie
         nobles = partie.nobles.all()
 
@@ -390,6 +391,29 @@ class GameView(LoginRequiredMixin, View):
         }
         return render(request, 'jeu_templates/game.html', context)
     
+    def remplacer_carte_sur_plateau(self, plateau, niveau):
+        # Cette méthode remplace une carte sur le plateau par la prochaine carte de la pile correspondante.
+        if niveau == 1:
+            pile_model = CartePileNiveau1
+        elif niveau == 2:
+            pile_model = CartePileNiveau2
+        elif niveau == 3:
+            pile_model = CartePileNiveau3
+        else:
+            # Niveau invalide
+            return
+
+        # Récupérer la prochaine carte de la pile en respectant l'ordre
+        prochaine_carte_relation = pile_model.objects.filter(plateau=plateau).order_by('order').first()
+        if prochaine_carte_relation:
+            prochaine_carte = prochaine_carte_relation.carte
+            # Ajouter la carte aux cartes visibles du plateau
+            plateau.cartes.add(prochaine_carte)
+            # Supprimer l'entrée de la pile sans modifier l'ordre des autres cartes
+            prochaine_carte_relation.delete()
+            plateau.save()
+
+
 class RejoindrePartieView(LoginRequiredMixin, View):
     def post(self, request, partie_id):
         partie = get_object_or_404(Partie, id=partie_id)
