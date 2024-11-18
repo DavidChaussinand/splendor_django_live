@@ -151,7 +151,41 @@ class GameConsumer(AsyncWebsocketConsumer):
             await self.passer_au_joueur_suivant()
 
     async def handle_prendre_3_jetons(self, couleurs):
+
+
+        # Récupérer les couleurs disponibles et leur nombre
+        couleurs_disponibles = await JetonService.get_couleurs_disponibles(self.partie)
+        nombre_couleurs_disponibles = await JetonService.get_nombre_couleurs_disponibles(self.partie)
+        # Log des couleurs disponibles
+        print(f"Couleurs disponibles : {couleurs_disponibles}")
+        print(f"Nombre de couleurs disponibles : {nombre_couleurs_disponibles}")
+
+        # Vérification des scénarios
+        if nombre_couleurs_disponibles >= 3:
+            if len(couleurs) != 3 or not set(couleurs).issubset(set(couleurs_disponibles.keys())):
+                await self.send(text_data=json.dumps({"error": "Veuillez sélectionner exactement trois couleurs différentes disponibles."}))
+                return
+
+        elif nombre_couleurs_disponibles == 2:
+            if set(couleurs) != set(couleurs_disponibles.keys()):
+                await self.send(text_data=json.dumps({
+                    "error": f"Veuillez sélectionner exactement ces deux couleurs : {', '.join(couleurs_disponibles.keys())}."
+                }))
+                return
+
+        elif nombre_couleurs_disponibles == 1:
+            seule_couleur = list(couleurs_disponibles.keys())[0]
+            if couleurs != [seule_couleur]:
+                await self.send(text_data=json.dumps({
+                    "error": f"Vous devez sélectionner cette couleur : {seule_couleur}."
+                }))
+                return
+
+        elif nombre_couleurs_disponibles == 0:
+            await self.send(text_data=json.dumps({"error": "Aucune couleur disponible pour prendre des jetons."}))
+            return
         result = await JetonService.prendre_3_jetons_differents(self.partie, self.user, couleurs)
+       
 
         if "error" in result:
             await self.send(text_data=json.dumps({"error": result["error"]}))

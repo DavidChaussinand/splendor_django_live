@@ -64,6 +64,18 @@ class Plateau(models.Model):
         Carte, through='CartePileNiveau3', related_name='cartes_pile_niveau_3_new'
     )
 
+    def couleurs_disponibles(self):
+        """
+        Retourne un dictionnaire des couleurs disponibles et leurs quantités.
+        """
+        jetons_disponibles = self.jetons.filter(quantite__gt=0)
+        return {jeton.couleur: jeton.quantite for jeton in jetons_disponibles}
+    
+    def nombre_couleurs_disponibles(self):
+        """
+        Retourne le nombre total de couleurs disponibles (quantité > 0).
+        """
+        return self.jetons.filter(quantite__gt=0).count()
 
 
     def __str__(self):

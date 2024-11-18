@@ -219,19 +219,41 @@ export class Game {
     }
 
     prendre3Jetons() {
-        if (this.selectedColors.size !== 3) {
-            afficherMessage('error', "Veuillez sélectionner trois couleurs différentes.");
-            return;
-        }
-
         const couleurs = Array.from(this.selectedColors);
+    
+        // Vérifier dynamiquement les couleurs disponibles depuis le serveur
+        if (this.plateauCouleursDisponible) {
+            const nombreCouleursDisponibles = Object.keys(this.plateauCouleursDisponible).length;
+    
+            // Scénario 1 : 3 couleurs ou plus disponibles
+            if (nombreCouleursDisponibles >= 3 && couleurs.length !== 3) {
+                afficherMessage('error', "Veuillez sélectionner exactement trois couleurs différentes.");
+                return;
+            }
+    
+            // Scénario 2 : 2 couleurs disponibles
+            if (nombreCouleursDisponibles === 2 && couleurs.length !== 2) {
+                afficherMessage('error', `Veuillez sélectionner exactement ces deux couleurs : ${Object.keys(this.plateauCouleursDisponible).join(", ")}.`);
+                return;
+            }
+    
+            // Scénario 3 : 1 couleur disponible
+            if (nombreCouleursDisponibles === 1 && couleurs.length !== 1) {
+                const seuleCouleur = Object.keys(this.plateauCouleursDisponible)[0];
+                afficherMessage('error', `Vous devez sélectionner cette couleur : ${seuleCouleur}.`);
+                return;
+            }
+        }
+    
+        // Envoyer l'action au serveur
         this.socketClient.send({
             "action": "prendre_3_jetons",
             "couleurs": couleurs
         });
-
+    
         this.resetSelection();
     }
+    
 
 
     handleCarteClick(event) {
