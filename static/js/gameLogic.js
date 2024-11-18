@@ -72,6 +72,11 @@ export class Game {
         if (data.message) {
             afficherMessage('info', data.message);
         }
+
+        if (data.type === "victory_announcement") {
+            document.body.dataset.gameOver = "true"; // Indique que le jeu est terminé
+            this.showVictoryModal(data.winner, data.points);
+        }
     
         if (data.type === "tour_update") {
             console.log("Message 'tour_update' reçu :", data);
@@ -161,9 +166,22 @@ export class Game {
                 
             }
         }
+
+
+        
     }
     
-
+    showVictoryModal(winner, points) {
+        const modal = document.getElementById('victoryModal');
+        const messageElement = document.getElementById('victoryMessage');
+        messageElement.innerText = `Félicitations ${winner} ! Vous avez gagné avec ${points} points !`;
+    
+        // Marquer que le jeu est terminé
+        document.body.dataset.gameOver = "true";
+        // Afficher la modal avec Bootstrap
+        const modalInstance = new bootstrap.Modal(modal);
+        modalInstance.show();
+    }
 
     handleSocketClose() {
         console.error("Socket fermé de manière inattendue.");

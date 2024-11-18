@@ -281,6 +281,7 @@ class GameConsumer(AsyncWebsocketConsumer):
             }
         )
 
+        await self.check_victory(joueur_partie)
         # Passer au joueur suivant si aucun noble à choisir ou si un seul a été acquis
         if len(nobles_acquerables) <= 1:
             await self.passer_au_joueur_suivant()
@@ -807,3 +808,35 @@ class GameConsumer(AsyncWebsocketConsumer):
             await database_sync_to_async(prochaine_carte_relation.delete)()
             # Sauvegarder les changements du plateau
             await database_sync_to_async(plateau.save)()
+
+
+
+    async def check_victory(self, joueur_partie):
+        # Récupérer les points de victoire et le nom du joueur de manière synchrone
+        joueur_username = await database_sync_to_async(lambda: joueur_partie.joueur.username)()
+        points_victoire = await database_sync_to_async(lambda: joueur_partie.points_victoire)()
+
+        if points_victoire >= 1:  # Condition de victoire
+            # Envoyer la notification de victoire à tous les clients
+            await self.channel_layer.group_send(
+                self.partie_group_name,
+                {
+                    "type": "victory_announcement",
+                    "winner": joueur_username,
+                    "points": points_victoire,
+                    "message": f"Félicitations {joueur_username} ! Vous avez gagné avec {points_victoire} points !",
+                }
+            )
+
+            # Mettre fin à la partie en marquant son état (si nécessaire dans la base de données)
+            await database_sync_to_async(lambda: setattr(self.partie, "status", "finished"))()
+            await database_sync_to_async(self.partie.save)()
+
+    async def victory_announcement(self, event):
+        # Envoyer les données de la victoire au client
+        await self.send(text_data=json.dumps({
+            "type": "victory_announcement",
+            "winner": event["winner"],
+            "points": event["points"],
+            "message": event["message"],
+        }))
