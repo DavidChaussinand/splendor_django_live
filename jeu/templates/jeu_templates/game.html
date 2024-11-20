@@ -71,13 +71,11 @@
 
 <div class= "container_splendor">
     
+   
 
     <div class="info_layout">
-        <p class="display-4">Partie : {{ nom_partie }}</p>
-        <p id="current_player">C'est au tour de : {{ current_player.username }}</p>
+        <p id="current_player" class="info-style">C'est au tour de : {{ current_player.username }}</p>
         <div id="message-container"></div>
-        <h3>Nombre de joueurs : {{ partie.joueurs.count }} / {{ partie.nombre_joueurs }}</h3>
-        <button id="reset-game" data-url="{% url 'reset_game' partie.id %}">Réinitialiser la partie</button>
     </div>
       
 
@@ -87,7 +85,7 @@
         
         {% for couleur, quantite in plateau.items %}
             <button class="jeton btn-custom btn-{{ couleur }}" type="button" id="plateau-{{ couleur }}-quantite" data-color="{{ couleur }}">
-                {{ couleur|title }}: <span>{{ quantite }}</span>
+                 <span>{{ quantite }}</span>
             </button>
         {% endfor %}
         
@@ -173,18 +171,11 @@
     
 
         <div class="nobles_layout">
-            <h3>Nobles</h3>
+           
             <div class="nobles-container">
                 {% for noble in nobles %}
                     <div class="noble" data-id="{{ noble.id }}">
                         <img src="/static/{{ noble.image_path }}" class="noble-image" alt="Image du noble">
-
-                        <p>Points: {{ noble.points_de_victoire }}</p>
-                        <div class="cout-container">
-                            {% for couleur, cout in noble.cout.items %}
-                                <p>{{ couleur|title }}: {{ cout }}</p>
-                            {% endfor %}
-                        </div>
                     </div>
                 {% endfor %}
             </div>
