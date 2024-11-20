@@ -48,20 +48,23 @@
 
 
     <!-- Modal pour les scores finaux -->
-    <div class="modal fade" id="finalVictoryModal" tabindex="-1" aria-labelledby="finalVictoryModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h1 class="modal-title fs-5" id="finalVictoryModalLabel">Scores finaux</h1>
-                </div>
-                <div class="modal-body">
-                    <p id="finalVictoryMessage"></p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
-                </div>
+    <div class="modal fade" id="finalVictoryModal" tabindex="-1" aria-labelledby="finalVictoryModalLabel" aria-hidden="true"
+        data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="finalVictoryModalLabel">Scores finaux</h1>
+            </div>
+            <div class="modal-body">
+                <p id="finalVictoryMessage"></p>
+            </div>
+            <div class="modal-footer">
+                <!-- Lien vers la page d'accueil -->
+                <p>Merci d'avoir participer : </p>
+                <a class="btn btn-primary" href="{% url 'home' %}"> Retour à l'accueil</a>
             </div>
         </div>
+    </div>
     </div>
 
     
