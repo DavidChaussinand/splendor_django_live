@@ -29,22 +29,41 @@
       </div>
 
 
-      <!-- Modal de victoire -->
-    <div class="modal fade" id="victoryModal" tabindex="-1" aria-labelledby="victoryModalLabel" aria-hidden="true">
+    <!-- Modal pour annoncer la fin de partie -->
+    <div class="modal fade" id="victoryAnnouncementModal" tabindex="-1" aria-labelledby="victoryAnnouncementModalLabel" aria-hidden="true">
         <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-            <h1 class="modal-title fs-5" id="victoryModalLabel">Félicitations !</h1>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="victoryAnnouncementModalLabel">Félicitations !</h1>
+                </div>
+                <div class="modal-body">
+                    <p id="victoryAnnouncementMessage"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                </div>
             </div>
-            <div class="modal-body">
-            <p id="victoryMessage"></p>
-            </div>
-            <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
-            </div>
-        </div>
         </div>
     </div>
+
+
+    <!-- Modal pour les scores finaux -->
+    <div class="modal fade" id="finalVictoryModal" tabindex="-1" aria-labelledby="finalVictoryModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="finalVictoryModalLabel">Scores finaux</h1>
+                </div>
+                <div class="modal-body">
+                    <p id="finalVictoryMessage"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     
 
 <div class= "container_splendor">

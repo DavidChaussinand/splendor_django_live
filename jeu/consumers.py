@@ -1,6 +1,7 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
+
 from .models import Partie, JoueurPartie, Jeton , Carte , Noble ,CartePileNiveau1 , CartePileNiveau2 ,CartePileNiveau3
 from .services.jeton_service import JetonService
 from .services.joueur_service import JoueurService
@@ -286,6 +287,8 @@ class GameConsumer(AsyncWebsocketConsumer):
         if len(nobles_acquerables) <= 1:
             await self.passer_au_joueur_suivant()
 
+        
+
     async def handle_reserver_carte(self, carte_id):
         carte = await database_sync_to_async(Carte.objects.get)(id=carte_id)
         joueur_partie = await database_sync_to_async(JoueurPartie.objects.get)(joueur=self.user, partie=self.partie)
@@ -479,7 +482,7 @@ class GameConsumer(AsyncWebsocketConsumer):
                 "nobles_acquis": [],
             }
         )
-
+        await self.check_victory(joueur_partie)
         # Passer au joueur suivant si aucun noble à choisir ou si un seul a été acquis
         if len(nobles_acquerables) <= 1:
             await self.passer_au_joueur_suivant()
@@ -518,18 +521,65 @@ class GameConsumer(AsyncWebsocketConsumer):
         return await database_sync_to_async(sync_get_cartes_data)(self.partie.id)
 
 
-
     async def passer_au_joueur_suivant(self):
-        prochain_joueur = await PartieService.passer_au_joueur_suivant(self.partie)
+        try:
+            # Obtenir les joueurs de la partie, ordonnés par 'order'
+            joueurs_partie = await database_sync_to_async(
+                lambda: list(JoueurPartie.objects.filter(partie=self.partie).select_related('joueur').order_by('order'))
+            )()
 
-        # Informer tous les clients du changement de joueur
-        await self.channel_layer.group_send(
-            self.partie_group_name,
-            {
-                "type": "tour_update",
-                "current_player": prochain_joueur.username,
-            }
-        )
+            if not joueurs_partie:
+                print("Erreur : Aucun joueur trouvé dans la partie.")
+                return
+
+            # Récupérer le joueur courant
+            joueur_courant = await database_sync_to_async(lambda: self.partie.joueur_courant)()
+
+            # Trouver l'index du joueur courant dans la liste
+            current_index = next((index for index, jp in enumerate(joueurs_partie) if jp.joueur_id == joueur_courant.id), -1)
+
+            if current_index == -1:
+                print(f"Erreur : Joueur courant ({joueur_courant.username}) introuvable dans la partie.")
+                return
+
+            # Déterminer l'index du joueur suivant
+            next_index = (current_index + 1) % len(joueurs_partie)
+            next_joueur = await database_sync_to_async(
+                lambda: joueurs_partie[next_index].joueur
+            )()
+
+            # Mettre à jour le joueur courant dans la partie
+            await database_sync_to_async(lambda: setattr(self.partie, "joueur_courant", next_joueur))()
+            await database_sync_to_async(self.partie.save)()
+
+            # Recharger self.partie depuis la base de données pour obtenir le statut le plus récent
+            self.partie = await database_sync_to_async(Partie.objects.get)(id=self.partie.id)
+
+            # Logs pour le débogage
+            for joueur in joueurs_partie:
+                print(f"Joueur: {joueur.joueur.username}, Order: {joueur.order}")
+            print(f"Joueur courant: {joueur_courant.username}, Prochain joueur: {next_joueur.username}")
+            print(f"Statut de la partie : {self.partie.status}")
+
+            if joueurs_partie[next_index].order == 1 and self.partie.status == "final_turn":
+                print("Conditions remplies pour check_end_of_game")
+                await self.check_end_of_game()
+                print("check_end_of_game terminé")
+
+            # Notifier tous les joueurs du changement de tour
+            await self.channel_layer.group_send(
+                self.partie_group_name,
+                {
+                    "type": "tour_update",
+                    "current_player": next_joueur.username,
+                }
+            )
+
+        except Exception as e:
+            print(f"Erreur dans passer_au_joueur_suivant : {str(e)}")
+
+
+
 
     async def tour_update(self, event):
         # Envoyer le nom du nouveau joueur courant au client
@@ -817,20 +867,96 @@ class GameConsumer(AsyncWebsocketConsumer):
         points_victoire = await database_sync_to_async(lambda: joueur_partie.points_victoire)()
 
         if points_victoire >= 1:  # Condition de victoire
-            # Envoyer la notification de victoire à tous les clients
+            # Notifier tous les joueurs de la fin du jeu après le tour
             await self.channel_layer.group_send(
                 self.partie_group_name,
                 {
                     "type": "victory_announcement",
                     "winner": joueur_username,
                     "points": points_victoire,
-                    "message": f"Félicitations {joueur_username} ! Vous avez gagné avec {points_victoire} points !",
+                    "message": f"Félicitations {joueur_username} a déclenché la fin de partie ! Le jeu se terminera après le tour en cours.",
                 }
             )
 
-            # Mettre fin à la partie en marquant son état (si nécessaire dans la base de données)
-            await database_sync_to_async(lambda: setattr(self.partie, "status", "finished"))()
+            # Marquer la partie comme en "phase finale"
+            await database_sync_to_async(lambda: setattr(self.partie, "status", "final_turn"))()
             await database_sync_to_async(self.partie.save)()
+
+            # Pour débogage
+        print(f"Statut de la partie mis à jour dans check_victory : {self.partie.status}")
+
+
+    async def check_end_of_game(self):
+        try:
+            print("Début de check_end_of_game")
+            # Rafraîchir self.partie pour obtenir les dernières données
+            await database_sync_to_async(self.partie.refresh_from_db)()
+            print("Partie rafraîchie")
+
+            try:
+                partie_status = await database_sync_to_async(lambda: self.partie.status)()
+                print(f"Statut de la partie : {partie_status}")
+            except Exception as e:
+                print(f"Erreur lors de la récupération du statut de la partie : {e}")
+                return
+
+            if partie_status == "final_turn":
+                try:
+                    # Obtenir les joueurs et leurs scores avec préchargement des relations
+                    joueurs_partie = await database_sync_to_async(
+                        lambda: list(
+                            JoueurPartie.objects
+                            .filter(partie=self.partie)
+                            .select_related('joueur')  # Précharge la relation 'joueur'
+                            .order_by("order")
+                        )
+                    )()
+                    joueurs_scores = [
+                        {"username": jp.joueur.username, "points": jp.points_victoire}
+                        for jp in joueurs_partie
+                    ]
+
+                    # Construire le message des scores
+                    message_scores = "\n".join(
+                        [f"{score['username']} a {score['points']} points" for score in joueurs_scores]
+                    )
+                    print(f"Scores des joueurs :\n{message_scores}")
+
+                    # Envoyer la notification des scores
+                    await self.channel_layer.group_send(
+                        self.partie_group_name,
+                        {
+                            "type": "final_scores_announcement",
+                            "message": f"Tour final terminé. Scores des joueurs :\n{message_scores}",
+                        }
+                    )
+                    print("Notification des scores envoyée")
+                except Exception as e:
+                    print(f"Erreur lors de la récupération des scores des joueurs : {e}")
+                    return
+
+                try:
+                    # Mettre à jour le statut de la partie
+                    await database_sync_to_async(lambda: setattr(self.partie, "status", "finished"))()
+                    await database_sync_to_async(self.partie.save)()
+                    print("Statut de la partie mis à jour à 'finished'")
+                except Exception as e:
+                    print(f"Erreur lors de la mise à jour du statut de la partie : {e}")
+                    return
+
+        except Exception as e:
+            print(f"Erreur générale dans check_end_of_game : {e}")
+
+
+
+ # Ajoutez ce gestionnaire pour final_scores_announcement
+    async def final_scores_announcement(self, event):
+        await self.send(text_data=json.dumps({
+            "type": "final_scores_announcement",
+            "message": event.get("message"),
+        }))
+
+
 
     async def victory_announcement(self, event):
         # Envoyer les données de la victoire au client
@@ -840,3 +966,4 @@ class GameConsumer(AsyncWebsocketConsumer):
             "points": event["points"],
             "message": event["message"],
         }))
+    

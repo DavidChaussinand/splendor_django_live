@@ -14,6 +14,7 @@ from .utils import generer_plateau
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
 from random import sample 
+from django.db.models import Max
 import random
 
 
@@ -265,7 +266,14 @@ class CreerPartieView(LoginRequiredMixin, View):
 
         partie = Partie.objects.create(nom=nom_partie, nombre_joueurs=nombre_joueurs, joueur_courant=request.user)
         partie.joueurs.add(request.user)
-        JoueurPartie.objects.create(joueur=request.user, partie=partie, jetons={"noir": 0, "bleu": 0, "blanc": 0, "rouge": 0, "vert": 0, "jaune": 0})
+
+        order = 1
+        JoueurPartie.objects.create(
+            joueur=request.user,
+            partie=partie,
+            jetons={"noir": 0, "bleu": 0, "blanc": 0, "rouge": 0, "vert": 0, "jaune": 0},
+            order=order
+        )
 
 
 
@@ -325,12 +333,20 @@ class GameView(LoginRequiredMixin, View):
         if request.user not in partie.joueurs.all():
             return redirect('creer_partie')
 
-        # Récupérer le joueur courant ou le créer s'il n'existe pas
+        # Récupérer ou créer le JoueurPartie pour le joueur courant
         joueur_courant, created = JoueurPartie.objects.get_or_create(
             joueur=request.user,
             partie=partie,
-            defaults={'points_victoire': 0, 'jetons': {"noir": 0, "bleu": 0, "blanc": 0, "rouge": 0, "vert": 0, "jaune": 0}}
+            defaults={
+                'points_victoire': 0,
+                'jetons': {"noir": 0, "bleu": 0, "blanc": 0, "rouge": 0, "vert": 0, "jaune": 0},
+                'order': JoueurPartie.objects.filter(partie=partie).count() + 1
+            }
         )
+
+        # Récupérer les joueurs de la partie, ordonnés par leur champ 'order'
+        joueurs_ordonnes = JoueurPartie.objects.filter(partie=partie).order_by('order')
+
 
         # Accéder au plateau de la partie
         plateau = partie.plateau
@@ -386,6 +402,7 @@ class GameView(LoginRequiredMixin, View):
             'cartes_pile_niveau_3': cartes_pile_niveau_3,
             'current_player': partie.joueur_courant,
             'cartes_achetees': cartes_achetees,
+            'joueurs_ordonnes': joueurs_ordonnes,
             'nobles': nobles,
             'is_game_page': True,
         }
@@ -424,16 +441,21 @@ class RejoindrePartieView(LoginRequiredMixin, View):
             erreur = "Cette partie est déjà complète."
             return render(request, 'jeu_templates/creer_partie.html', {'erreur': erreur, 'parties': parties})
 
-        # Ajouter l'utilisateur à la partie s'il n'est pas déjà dedans
         if request.user not in partie.joueurs.all():
             partie.joueurs.add(request.user)
             partie.save()
 
-            # Vérifier si une entrée JoueurPartie existe, sinon la créer
-            JoueurPartie.objects.get_or_create(
+            # Déterminer le prochain ordre disponible
+            max_order = JoueurPartie.objects.filter(partie=partie).aggregate(Max('order'))['order__max'] or 0
+            next_order = max_order + 1
+
+            # Créer le JoueurPartie avec le prochain ordre
+            JoueurPartie.objects.create(
                 joueur=request.user,
                 partie=partie,
-                defaults={'points_victoire': 0, 'jetons': {"noir": 0,"bleu":0, "blanc": 0, "rouge": 0, "vert": 0, "jaune": 0}}
+                points_victoire=0,
+                jetons={"noir": 0,"bleu":0, "blanc": 0, "rouge": 0, "vert": 0, "jaune": 0},
+                order=next_order
             )
 
         return redirect('game_view', nom_partie=partie.nom)

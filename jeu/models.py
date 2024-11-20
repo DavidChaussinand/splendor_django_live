@@ -5,14 +5,30 @@ import json
 
 
 
+from django.db import models
+from django.contrib.auth.models import User
+
 class Partie(models.Model):
     nom = models.CharField(max_length=100, unique=True)
     nombre_joueurs = models.IntegerField()
     joueurs = models.ManyToManyField(User, related_name='parties')
     date_creation = models.DateTimeField(auto_now_add=True)
     joueur_courant = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='parties_en_cours')
-    nobles = models.ManyToManyField('Noble', related_name='parties', blank=True)  # New line added
+    nobles = models.ManyToManyField('Noble', related_name='parties', blank=True)
+
     
+    # Nouveau champ status
+    STATUS_CHOICES = [
+        ('ongoing', 'En cours'),
+        ('final_turn', 'Tour final'),
+        ('finished', 'Terminée'),
+    ]
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='ongoing',  # Statut initial
+    )
+
     def joueur_suivant(self):
         # Récupérer la liste des joueurs ordonnée par ordre d'inscription
         joueurs_partie = JoueurPartie.objects.filter(partie=self).order_by('id')
@@ -136,6 +152,10 @@ class JoueurPartie(models.Model):
     cartes_reservees = models.ManyToManyField('Carte', related_name='reservees', blank=True)  # Liste vide par défaut
     tokens_a_defausser = models.PositiveIntegerField(default=0)
     nobles_acquis = models.ManyToManyField(Noble, related_name='joueurs', blank=True)
+    order = models.IntegerField(default=0)  # Nouveau champ pour l'ordre des joueurs
+
+    class Meta:
+        unique_together = ('partie', 'order') 
 
     def __str__(self):
         return f"{self.joueur.username} dans {self.partie.nom}"

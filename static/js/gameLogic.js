@@ -74,9 +74,16 @@ export class Game {
         }
 
         if (data.type === "victory_announcement") {
-            document.body.dataset.gameOver = "true"; // Indique que le jeu est terminé
+            // Affiche une modal pour indiquer que la partie est en phase finale
             this.showVictoryModal(data.winner, data.points);
         }
+
+        if (data.type === "final_scores_announcement") {
+            // Affiche une modal pour montrer les scores finaux
+            this.showFinalScoresModal(data.message);
+        }
+    
+    
     
         if (data.type === "tour_update") {
             console.log("Message 'tour_update' reçu :", data);
@@ -172,16 +179,28 @@ export class Game {
     }
     
     showVictoryModal(winner, points) {
-        const modal = document.getElementById('victoryModal');
-        const messageElement = document.getElementById('victoryMessage');
-        messageElement.innerText = `Félicitations ${winner} ! Vous avez gagné avec ${points} points !`;
+        const modal = document.getElementById('victoryAnnouncementModal');
+        const messageElement = document.getElementById('victoryAnnouncementMessage');
+        messageElement.innerText = `Félicitations ${winner} ! Vous avez déclenché la fin de partie avec ${points} points !`;
     
-        // Marquer que le jeu est terminé
-        document.body.dataset.gameOver = "true";
         // Afficher la modal avec Bootstrap
         const modalInstance = new bootstrap.Modal(modal);
         modalInstance.show();
     }
+
+   
+    
+
+    showFinalScoresModal(scoresMessage) {
+        // Met à jour le contenu de la modal avec les scores finaux
+        const modalMessageElement = document.getElementById('finalVictoryMessage');
+        modalMessageElement.innerText = scoresMessage;
+    
+        // Affiche la modal Bootstrap
+        const finalVictoryModal = new bootstrap.Modal(document.getElementById('finalVictoryModal'));
+        finalVictoryModal.show();
+    }
+    
 
     handleSocketClose() {
         console.error("Socket fermé de manière inattendue.");
