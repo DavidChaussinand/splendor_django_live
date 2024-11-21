@@ -4,11 +4,19 @@
 {% block title %}Accueil{% endblock %}
 
 {% block content %}
-<div class="text-center">
-    <h2 class="display-4">Bienvenue sur le jeu Splendor</h2>
-    <p class="lead">Préparez-vous à une partie palpitante de Splendor en ligne !</p>
-    <a href="{% url 'creer_partie' %}" class="btn btn-primary">Commencer une partie</a>
-</div>
+
+
+    <div class="container-home">
+
+    
+
+        <div class="text-center">
+            <h2 class="display-4 gold">Bienvenue sur le jeu Splendor</h2>
+            <p class="lead gold">Préparez-vous à une partie palpitante de Splendor en ligne !</p>
+            <a href="{% url 'creer_partie' %}" class="btn-custom-home">Commencer une partie</a>
+        </div>
+
+    </div>
 
 
 {% endblock %}

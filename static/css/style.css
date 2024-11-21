@@ -4,7 +4,7 @@ html, body {
     overflow: hidden;
     margin: 0;
     padding: 0;
-    background-color: #bab7b7;
+    /* background-color: #bab7b7; */
 }
 
 
@@ -901,3 +901,208 @@ footer {
     border-top-right-radius: 10px;
     clip-path: inset(0 0 65% 0); /* Masque les 65% inférieurs de l'image */
 }
+
+
+
+/****************** home page **********************/
+
+.container-home {
+   
+    background: url('/static/images/fond-ecran/home.png') no-repeat center center; /* Image centrée */
+    background-size: cover; /* Image responsive */
+    background-color: #024402; /* Couleur de fond de secours */
+    width: 144%;
+    height: 89vh !important;
+    margin: 0;
+    padding: 0;
+    height: auto;
+    margin-left: -282px;
+    text-align: center;
+    margin-bottom: 25px;
+}
+.gold{
+    color: gold;
+}
+
+.btn-custom-home {
+    display: inline-block;
+    padding: 12px 30px; /* Espacement interne */
+    font-size: 1.2rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: #ffd700; /* Texte doré */
+    background-color: transparent; /* Fond transparent */
+    border: 2px solid #ffd700; /* Bordure dorée */
+    border-radius: 5px; /* Coins légèrement arrondis */
+    text-decoration: none; /* Supprime le soulignement */
+    transition: all 0.3s ease; /* Animation pour le hover */
+    cursor: pointer;
+    margin-top: 100px;
+    
+  }
+  
+  /* Effet au survol */
+  .text-center .btn-custom-home:hover {
+    background-color: #ffd700; /* Fond doré */
+    color: #000; /* Texte noir */
+    box-shadow: 0 0 10px #ffd700; /* Ombre lumineuse */
+  }
+
+  /******************  container-creerGame ******************************/
+  .container-creerGame {
+    position: relative; /* Nécessaire pour positionner le pseudo-élément */
+    background: url(/static/images/fond-ecran/game.png) no-repeat center center;
+    background-size: cover;
+    height: 38vh !important;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+    overflow: hidden; /* Empêche les débordements */
+  }
+  
+  .container-creerGame::before {
+    content: ""; /* Nécessaire pour un pseudo-élément */
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.12); /* Couche noire semi-transparente (50% d'opacité) */
+    z-index: 1; /* Place le pseudo-élément derrière le contenu */
+  }
+  
+  .container-creerGame > * {
+    position: relative;
+    z-index: 2; /* Assure que le contenu reste visible au-dessus de l'opacité */
+  }
+  
+  .form-control-custom {
+    width: 36%; /* Largeur du champ */
+    margin: 10px auto; /* Centre le champ horizontalement */
+    padding: 10px 15px; /* Espacement intérieur */
+    font-size: 1rem; /* Taille du texte */
+    color: #ffd700; /* Texte doré pour s'adapter au thème jeu vidéo */
+    background-color: rgba(0, 0, 0, 0.7); /* Fond noir semi-transparent */
+    border: 2px solid #ffd700; /* Bordure dorée */
+    border-radius: 8px; /* Coins arrondis pour un style moderne */
+    outline: none; /* Supprime le contour bleu au focus */
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.5); /* Effet lumineux autour */
+    transition: all 0.3s ease-in-out; /* Animation pour les interactions */
+  }
+  
+  /* Style au survol */
+  .form-control-custom:hover {
+    background-color: rgba(0, 0, 0, 0.9); /* Fond légèrement plus sombre */
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.8); /* Intensifie l'effet lumineux */
+  }
+  
+  /* Style au focus */
+  .form-control-custom:focus {
+    border-color: #fff; /* Bordure blanche au focus */
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.9); /* Effet lumineux blanc */
+    color: #fff; /* Texte blanc pour indiquer l'état actif */
+  }
+  
+  .height-custom {
+    height: 15px; /* Hauteur fixe */
+    font-size: 15px; /* Taille de la police */
+    width: 36%; /* Largeur du conteneur */
+    margin: 0 auto; /* Centre horizontalement */
+    display: flex; /* Active Flexbox */
+    align-items: center; /* Centre le texte verticalement */
+    justify-content: center; /* Centre le texte horizontalement */
+    text-align: center; /* Gère les retours à la ligne, si besoin */
+  }
+  
+ .margin-custom-btn{
+    margin-left: 238px;
+ }
+
+
+ /* Conteneur principal */
+.table-game {
+    width: 100%;
+    margin: 20px 0;
+    border-collapse: collapse; /* Supprime les espaces entre les cellules */
+    text-align: center;
+    font-family: 'Courier New', Courier, monospace; /* Police style rétro/jeu vidéo */
+    background-color: #1a1a1a; /* Fond sombre */
+    color: #00ffcc; /* Texte vert fluo */
+  }
+  
+  /* En-tête du tableau */
+  .table-game thead th {
+    background-color: #262626; /* Fond légèrement plus clair */
+    color: #00ffcc; /* Texte vert fluo */
+    font-size: 1rem;
+    text-transform: uppercase; /* Texte en majuscules */
+    padding: 15px;
+    border-bottom: 2px solid #00ffcc;
+  }
+  
+  /* Corps du tableau */
+  .table-game tbody td {
+    padding: 12px;
+    border-bottom: 1px solid #333; /* Ligne de séparation discrète */
+    color: #f0f0f0; /* Texte clair */
+  }
+  
+  /* Ligne survolée */
+  .table-game tbody tr:hover {
+    background-color: #333; /* Change la couleur de fond au survol */
+    cursor: pointer;
+  }
+  
+  /* Liste des joueurs */
+  ul.list-game {
+    list-style-type: none; /* Supprime les puces */
+    margin: 0;
+    padding: 0;
+  }
+  
+  ul.list-game li {
+    color: #00ffcc; /* Texte vert fluo */
+    font-size: 0.9rem;
+  }
+  
+  /* Étiquettes (badges) */
+  .badge-game-success {
+    background-color: #008000; /* Vert foncé */
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+  }
+  
+  .badge-game-secondary {
+    background-color: #444; /* Gris foncé */
+    color: #ccc;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+  }
+  
+  /* Boutons personnalisés */
+  .btn-game {
+    padding: 8px 15px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: #ffd700;
+    background-color: transparent;
+    border: 2px solid #ffd700;
+    border-radius: 5px;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+  }
+  
+  .btn-game:hover {
+    background-color: #ffd700;
+    color: #000;
+    box-shadow: 0 0 10px #ffd700;
+  }
+  
+  .text-muted-game {
+    color: #888;
+    font-size: 0.9rem;
+  }
+  
