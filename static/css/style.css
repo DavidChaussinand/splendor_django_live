@@ -1,4 +1,4 @@
-/* Style de base pour l'ensemble de la page */
+table/* Style de base pour l'ensemble de la page */
 html, body {
     height: 100vh;
     overflow: hidden;
@@ -154,6 +154,7 @@ footer {
     padding: 0;
     position: relative; /* Nécessaire pour positionner le pseudo-élément */
     z-index: 0; /* Place les enfants au-dessus du pseudo-élément */
+    background-color: #bab7b7;
 }
 
 .container_splendor::before {
@@ -821,7 +822,7 @@ footer {
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-    max-width: 800px;
+    max-width: 1072px;
     text-align: center;
 }
 
@@ -871,6 +872,7 @@ footer {
     border-radius: 8px;
     width: 250px; /* Largeur augmentée */
     height: auto; /* Permet de s’ajuster en fonction du contenu */
+  
 }
 
 .noble-image {
@@ -878,7 +880,10 @@ footer {
     height: 200px; /* Hauteur augmentée */
     object-fit: cover; /* Maintient les proportions tout en remplissant l’espace */
     border-radius: 6px;
+ 
 }
+
+
 
 .cout-container {
     display: flex;
@@ -949,6 +954,15 @@ footer {
   }
 
   /******************  container-creerGame ******************************/
+
+
+.creerPartie-page {
+    height: auto; /* Permet de s'adapter au contenu */
+    overflow: visible; /* Supprime la contrainte de débordement */
+    background-color: white; /* Facultatif, pour un fond différent si nécessaire */
+}
+
+
   .container-creerGame {
     position: relative; /* Nécessaire pour positionner le pseudo-élément */
     background: url(/static/images/fond-ecran/game.png) no-repeat center center;
@@ -1022,6 +1036,7 @@ footer {
  /* Conteneur principal */
 .table-game {
     width: 100%;
+    min-height: 40vh;
     margin: 20px 0;
     border-collapse: collapse; /* Supprime les espaces entre les cellules */
     text-align: center;

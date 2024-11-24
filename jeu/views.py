@@ -310,12 +310,18 @@ class CreerPartieView(LoginRequiredMixin, View):
                 for index, carte in enumerate(cartes_pile_niveau[4:]):
                     CartePileNiveau3.objects.create(plateau=plateau, carte=carte, order=index)
                     
-        # Création d'une nouvelle partie ici ...
-        # Assignez des nobles à la partie
+        # Assignez des nobles à la partie en fonction du nombre de joueurs
         tous_les_nobles = list(Noble.objects.all())
-        nobles_selectionnes = sample(tous_les_nobles, min(3, len(tous_les_nobles)))  # Par exemple, 3 nobles sélectionnés
-        # Logique pour ajouter ces nobles à la partie, peut-être  une relation `ManyToMany` avec `Partie`
+
+        # Déterminez le nombre de nobles en fonction du nombre de joueurs
+        nombre_nobles = {2: 3, 3: 4, 4: 5}.get(nombre_joueurs, 3)
+
+        # Sélectionnez les nobles aléatoirement parmi la liste disponible
+        nobles_selectionnes = sample(tous_les_nobles, min(nombre_nobles, len(tous_les_nobles)))
+
+        # Assignez les nobles à la partie
         partie.nobles.set(nobles_selectionnes)
+
 
         message = "La partie a été créée avec succès."
         parties = Partie.objects.all()

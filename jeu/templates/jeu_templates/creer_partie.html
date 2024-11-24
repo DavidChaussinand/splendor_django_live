@@ -6,104 +6,113 @@
 
 {% block content %}
 
-<div class="container-creerGame">
+<body class="creerPartie-page">
 
 
-    <div class="text-center">
-        <h2 class="display-4 gold">Créer une nouvelle partie</h2>
 
-        {% if erreur %}
-            <div class="alert alert-danger  height-custom">{{ erreur }}</div>
-        {% endif %}
-        {% if message %}
-            <div class="alert alert-success height-custom">{{ message }}</div>
-        {% endif %}
 
-        {% if user.is_authenticated %}
-            <!-- Formulaire pour créer une partie si l'utilisateur est connecté -->
-            <form method="post">
-                {% csrf_token %}
-                <div class="form-group gold">
-                    <label for="nom_partie ">Nom de la partie :</label>
-                    <input type="text" class="form-control form-control-custom" id="nom_partie" name="nom_partie" required>
-                </div>
-                <div class="form-group gold">
-                    <label for="nombre_joueurs  ">Nombre de joueurs :</label>
-                    <input type="number" class="form-control form-control-custom" id="nombre_joueurs" name="nombre_joueurs" min="2" max="4" required>
-                </div>
-                <button type="submit" class="btn-custom-home margin-custom-btn">Créer la partie</button>
-            </form>
-        {% else %}
-            <!-- Message invitant l'utilisateur à se connecter -->
-            <div class="alert alert-info">
-                Veuillez vous connecter pour créer une partie.
-            </div>
-        {% endif %}
-    </div>
+    <div class="container-creerGame">
 
-</div>
 
-    <hr>
-
-    <h3>Parties disponibles</h3>
-    <table class="table-game">
-        <thead>
-            <tr>
-                <th>Nom de la partie</th>
-                <th>Nombre de joueurs</th>
-                <th>Joueurs actuels</th>
-                <th>Liste des joueurs</th>
-                <th>Actions</th>
-                <th>Accès à la partie</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for partie in parties %}
-                <tr>
-                    <td>{{ partie.nom }}</td>
-                    <td>{{ partie.nombre_joueurs }}</td>
-                    <td>{{ partie.joueurs.count }}</td>
-                    <td>
-                        <ul class="list-game">
-                            {% for joueur in partie.joueurs.all %}
-                                <li>{{ joueur.username }}</li>
-                            {% endfor %}
-                        </ul>
-                    </td>
-                    <td>
-                        {% if user.is_authenticated %}
-                            {% if user in partie.joueurs.all %}
-                                <span class="badge-game-success">Déjà rejoint</span>
-                            {% elif partie.joueurs.count < partie.nombre_joueurs %}
-                                <form method="post" action="{% url 'rejoindre_partie' partie.id %}">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn-game">Rejoindre la partie</button>
-                                </form>
-                            {% else %}
-                                <span class="badge-game-secondary">Complet</span>
-                            {% endif %}
-                        {% else %}
-                            <div class="text-muted-game">
-                                Veuillez vous connecter pour rejoindre une partie.
-                            </div>
-                        {% endif %}
-                    </td>
-                    <td>
-                        {% if user.is_authenticated and user in partie.joueurs.all %}
-                            <a href="{% url 'game_view' partie.nom %}" class="btn-game">Accéder à la partie</a>
-                        {% else %}
-                            <span class="text-muted-game">Non disponible</span>
-                        {% endif %}
-                    </td>
-                </tr>
-            {% empty %}
-                <tr>
-                    <td colspan="6">Aucune partie disponible.</td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+        <div class="text-center">
+            <h2 class="display-4 gold">Créer une nouvelle partie</h2>
     
+            {% if erreur %}
+                <div class="alert alert-danger  height-custom">{{ erreur }}</div>
+            {% endif %}
+            {% if message %}
+                <div class="alert alert-success height-custom">{{ message }}</div>
+            {% endif %}
+    
+            {% if user.is_authenticated %}
+                <!-- Formulaire pour créer une partie si l'utilisateur est connecté -->
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="form-group gold">
+                        <label for="nom_partie ">Nom de la partie :</label>
+                        <input type="text" class="form-control form-control-custom" id="nom_partie" name="nom_partie" required>
+                    </div>
+                    <div class="form-group gold">
+                        <label for="nombre_joueurs  ">Nombre de joueurs :</label>
+                        <input type="number" class="form-control form-control-custom" id="nombre_joueurs" name="nombre_joueurs" min="2" max="4" required>
+                    </div>
+                    <button type="submit" class="btn-custom-home margin-custom-btn">Créer la partie</button>
+                </form>
+            {% else %}
+                <!-- Message invitant l'utilisateur à se connecter -->
+                <div class="alert alert-info">
+                    Veuillez vous connecter pour créer une partie.
+                </div>
+            {% endif %}
+        </div>
+    
+    </div>
+    
+        <hr>
+    
+        <h3>Parties disponibles</h3>
+        <table class="table-game">
+            <thead>
+                <tr>
+                    <th>Nom de la partie</th>
+                    <th>Nombre de joueurs</th>
+                    <th>Joueurs actuels</th>
+                    <th>Liste des joueurs</th>
+                    <th>Actions</th>
+                    <th>Accès à la partie</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for partie in parties %}
+                    <tr>
+                        <td>{{ partie.nom }}</td>
+                        <td>{{ partie.nombre_joueurs }}</td>
+                        <td>{{ partie.joueurs.count }}</td>
+                        <td>
+                            <ul class="list-game">
+                                {% for joueur in partie.joueurs.all %}
+                                    <li>{{ joueur.username }}</li>
+                                {% endfor %}
+                            </ul>
+                        </td>
+                        <td>
+                            {% if user.is_authenticated %}
+                                {% if user in partie.joueurs.all %}
+                                    <span class="badge-game-success">Déjà rejoint</span>
+                                {% elif partie.joueurs.count < partie.nombre_joueurs %}
+                                    <form method="post" action="{% url 'rejoindre_partie' partie.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn-game">Rejoindre la partie</button>
+                                    </form>
+                                {% else %}
+                                    <span class="badge-game-secondary">Complet</span>
+                                {% endif %}
+                            {% else %}
+                                <div class="text-muted-game">
+                                    Veuillez vous connecter pour rejoindre une partie.
+                                </div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if user.is_authenticated and user in partie.joueurs.all %}
+                                <a href="{% url 'game_view' partie.nom %}" class="btn-game">Accéder à la partie</a>
+                            {% else %}
+                                <span class="text-muted-game">Non disponible</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6">Aucune partie disponible.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+
+
+
+</body>
 
 
 

@@ -866,7 +866,7 @@ class GameConsumer(AsyncWebsocketConsumer):
         joueur_username = await database_sync_to_async(lambda: joueur_partie.joueur.username)()
         points_victoire = await database_sync_to_async(lambda: joueur_partie.points_victoire)()
 
-        if points_victoire >= 1:  # Condition de victoire
+        if points_victoire >= 15:  # Condition de victoire
             # Notifier tous les joueurs de la fin du jeu après le tour
             await self.channel_layer.group_send(
                 self.partie_group_name,
