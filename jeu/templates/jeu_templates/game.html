@@ -27,6 +27,18 @@
         </div>
     </div>
     
+    <!-- Modal pour debut de partie -->
+    <div id="welcomeModal-startGame" class="modal-overlay-startGame">
+        <div class="modal-content-startGame">
+            <h1>Bienvenue dans le Game</h1>
+            <p>Que les meilleurs sayans gagnent !</p>
+            <button id="startGameButton" class="btn-startGame">Lancer la partie</button>
+        </div>
+    </div>
+    
+    <audio id="background-music" loop>
+        <source src="{% static 'musique/dbz.wav' %}" type="audio/mpeg">
+    </audio>
 
 
     <!-- Modal pour annoncer la fin de partie -->
@@ -390,9 +402,25 @@
 </script>
 
 
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+    const welcomeModal = document.getElementById("welcomeModal-startGame");
+    const startGameButton = document.getElementById("startGameButton");
+    const audio = document.getElementById("background-music");
 
+    // Gérer le clic sur le bouton "Lancer la partie"
+    startGameButton.addEventListener("click", () => {
+        // Lancer la musique
+        audio.play()
+            .then(() => {
+                console.log("Musique de fond démarrée !");
+                welcomeModal.style.display = "none"; // Masquer la modale
+            })
+            .catch(err => console.error("Erreur lors du démarrage de la musique :", err));
+    });
+});
 
-
+</script>
 
 
 

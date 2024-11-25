@@ -1164,7 +1164,7 @@ footer {
     cursor: pointer;
     border-radius: 10px; /* Rend les boutons circulaires */
     position: relative;
-    box-shadow: 0 6px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 3px rgba(0, 0, 0, 0.3);
     text-align: center;
     line-height: 50px; /* Centre verticalement le texte dans le bouton */
     letter-spacing: 1px;
@@ -1173,7 +1173,7 @@ footer {
 
 .btn-custom-small:hover {
     transform: scale(1.1); /* Légèrement plus grand au survol */
-    box-shadow: 0 6px rgba(0, 0, 0, 0.4); /* Accentue l'ombre */
+    box-shadow: 0 3px rgba(0, 0, 0, 0.4); /* Accentue l'ombre */
 }
 
 
@@ -1217,3 +1217,68 @@ footer {
     box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
 }
 
+
+/************* compteur musique départ ****************/
+/* Overlay de la modale */
+.modal-overlay-startGame {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+/* Contenu de la modale */
+.modal-content-startGame {
+    background: #ffffff;
+    padding: 30px;
+    text-align: center;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    width: 80%;
+    max-width: 500px;
+}
+
+.modal-content-startGame h1 {
+    font-size: 2rem;
+    margin-bottom: 15px;
+    color: #000;
+}
+
+.modal-content-startGame p {
+    font-size: 1.2rem;
+    margin-bottom: 25px;
+    color: #333;
+}
+
+/* Bouton pour lancer la partie */
+.btn-startGame {
+    display: inline-block;
+    width: 181px;
+    height: 62px;
+    font-size: 17px;
+    font-weight: bold;
+    color: white;
+    background-color:  #e04c08;
+    outline: none;
+    border: none;
+    cursor: pointer;
+    border-radius: 10px; /* Rend les boutons circulaires */
+    position: relative;
+    box-shadow: 0 3px rgba(187, 117, 5, 0.3);
+    text-align: center;
+    line-height: 50px; /* Centre verticalement le texte dans le bouton */
+    letter-spacing: 1px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease; /* Ajoute une transition fluide */
+}
+
+.btn-startGame:hover {
+    
+    transform: scale(1.05); /* Légèrement plus grand au survol */
+    
+}
