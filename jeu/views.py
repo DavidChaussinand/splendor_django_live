@@ -21,8 +21,11 @@ import random
 from django.http import JsonResponse
 
 def home(request):
-    return render(request, 'jeu_templates/home.html')
-
+    return render(request, 'jeu_templates/home.html', {
+        'is_home_page': True,  # Indique qu'il s'agit de la page Home
+        'is_game_page': False,
+        'is_create_page': False,
+    })
 
 def user_login(request):
     if request.method == 'POST':
@@ -252,8 +255,13 @@ def reset_game(request, partie_id):
 class CreerPartieView(LoginRequiredMixin, View):
     def get(self, request):
         parties = Partie.objects.all()
-        return render(request, 'jeu_templates/creer_partie.html', {'parties': parties})
-
+        return render(request, 'jeu_templates/creer_partie.html', {
+        'parties': parties,
+        'is_home_page': False,
+        'is_game_page': False,
+        'is_create_page': True,  # Indique que c'est la page créer partie
+    })
+    
     def post(self, request):
         nom_partie = request.POST.get('nom_partie')
         nombre_joueurs = int(request.POST.get('nombre_joueurs'))

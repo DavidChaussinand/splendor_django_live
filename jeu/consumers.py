@@ -143,6 +143,7 @@ class GameConsumer(AsyncWebsocketConsumer):
                 "jetons": jetons_joueur,
                 "plateau_jetons": plateau_jetons,
                 "nobles_acquis": [], 
+                "sound_effect": "2jetons",
             }
         )
 
@@ -223,6 +224,7 @@ class GameConsumer(AsyncWebsocketConsumer):
                 "jetons": jetons_joueur,
                 "plateau_jetons": plateau_jetons,
                 "nobles_acquis": [],
+                "sound_effect": "3jetons",
             }
         )
 
@@ -279,13 +281,19 @@ class GameConsumer(AsyncWebsocketConsumer):
                 "piles_counts": piles_counts,
                 "plateau_jetons": plateau_jetons,
                 "nobles_acquis": [],  # Pas de nobles acquis ici
+                "sound_effect": "achatCarte",
             }
         )
+
+        
+
 
         await self.check_victory(joueur_partie)
         # Passer au joueur suivant si aucun noble à choisir ou si un seul a été acquis
         if len(nobles_acquerables) <= 1:
             await self.passer_au_joueur_suivant()
+        
+        
 
         
 
@@ -347,6 +355,7 @@ class GameConsumer(AsyncWebsocketConsumer):
                 "cartes": cartes_data,
                 "piles_counts": piles_counts,
                 "nobles_acquis": [],
+                "sound_effect": "reserver",
             }
         )
 
@@ -429,6 +438,7 @@ class GameConsumer(AsyncWebsocketConsumer):
                 "cartes": cartes_data,
                 "piles_counts": piles_counts,
                 "nobles_acquis": [],
+                "sound_effect": "reserver",
             }
         )
 
@@ -480,6 +490,7 @@ class GameConsumer(AsyncWebsocketConsumer):
                 "bonus": bonus,
                 "points_victoire": points_victoire,
                 "nobles_acquis": [],
+                "sound_effect": "achatCarte",
             }
         )
         await self.check_victory(joueur_partie)

@@ -55,3 +55,6 @@ def piocher_carte_niveau(plateau, niveau):
         return prochaine_carte
     else:
         return None  # Si la pile est vide
+
+
+

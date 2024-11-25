@@ -11,22 +11,22 @@
     <link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}">
 
 
-     <!-- Modal de défausse des jetons -->
-     <div class="modal fade" id="discardTokensModal" tabindex="-1" aria-labelledby="discardTokensModalLabel" aria-hidden="true">
+    <div class="modal fade modal-slide-down" id="discardTokensModal" tabindex="-1" aria-labelledby="discardTokensModalLabel" aria-hidden="true">
         <div class="modal-dialog">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h1 class="modal-title fs-5" id="discardTokensModalLabel">Défausser des jetons</h1>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="discardTokensModalLabel">Défausser des jetons</h1>
+                </div>
+                <div class="modal-body">
+                    <!-- Les sélecteurs de jetons seront insérés ici dynamiquement -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="confirmDiscardButton" class="btn-custom-small">Confirmer</button>
+                </div>
             </div>
-            <div class="modal-body">
-              <!-- Les sélecteurs de jetons seront insérés ici -->
-            </div>
-            <div class="modal-footer">
-              <button type="button" id="confirmDiscardButton" class="btn btn-primary">Confirmer</button>
-            </div>
-          </div>
         </div>
-      </div>
+    </div>
+    
 
 
     <!-- Modal pour annoncer la fin de partie -->
@@ -67,10 +67,14 @@
     </div>
     </div>
 
-    
+    <!-- musique sur chaque action -->
+    <audio id="sound-2jetons" src="{% static 'musique/2jetons.wav' %}" preload="auto"></audio>
+    <audio id="sound-3jetons" src="{% static 'musique/3jetons.wav' %}" preload="auto"></audio>
+    <audio id="sound-reserver" src="{% static 'musique/reserve.wav' %}" preload="auto"></audio>
+    <audio id="sound-achatCarte" src="{% static 'musique/ok.wav' %}" preload="auto"></audio>
 
 <div class= "container_splendor">
-    
+
    
 
     <div class="info_layout">

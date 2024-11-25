@@ -1121,3 +1121,99 @@ footer {
     font-size: 0.9rem;
   }
   
+
+  /************* modal défausse jeton ********************/
+  /* Animation de descente */
+.modal.modal-slide-down .modal-dialog {
+    transform: translateY(-100%);
+    transition: transform 1.5s ease-in-out;
+}
+
+.modal.modal-slide-down.show .modal-dialog {
+    transform: translateY(0);
+}
+
+
+.modal-title{
+    color: #e04c08;
+    font-weight: 700;
+}
+
+.modal-body .jeton-info {
+    margin-bottom: 15px; /* Espace entre chaque ligne */
+    display: flex; /* Alignement horizontal des éléments */
+    justify-content: space-between; /* Distribution des éléments sur toute la largeur */
+    align-items: center; /* Alignement vertical */
+}
+
+.modal-body .jeton-info span {
+    font-size: 16px; /* Taille du texte */
+    font-weight: bold; /* Texte en gras */
+}
+
+.btn-custom-small {
+    display: inline-block;
+    width: 100px; /* Largeur égale pour des boutons circulaires */
+    height: 50px; /* Hauteur égale pour des boutons circulaires */
+    font-size: 17px;
+    font-weight: bold;
+    color: white;
+    background-color:  #e04c08;
+    outline: none;
+    border: none;
+    cursor: pointer;
+    border-radius: 10px; /* Rend les boutons circulaires */
+    position: relative;
+    box-shadow: 0 6px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    line-height: 50px; /* Centre verticalement le texte dans le bouton */
+    letter-spacing: 1px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease; /* Ajoute une transition fluide */
+}
+
+.btn-custom-small:hover {
+    transform: scale(1.1); /* Légèrement plus grand au survol */
+    box-shadow: 0 6px rgba(0, 0, 0, 0.4); /* Accentue l'ombre */
+}
+
+
+.token-discard {
+    display: flex;
+    align-items: center; /* Centre verticalement les éléments */
+    justify-content: space-evenly; /* Espace égal entre les éléments */
+    gap: 10px;
+    margin-bottom: 15px; /* Espace entre chaque ligne de jetons */
+    width: 270px;
+    margin-left: 74px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+}
+
+.token-discard label {
+    flex: 6; /* 60% de la largeur disponible */
+    text-align: left; /* Aligne le texte du label à gauche */
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+}
+
+.token-discard input {
+    flex: 2; /* 40% de la largeur disponible */
+    height: 35px;
+    text-align: center;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: bold;
+    background-color: #ffffff;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.token-discard input:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+

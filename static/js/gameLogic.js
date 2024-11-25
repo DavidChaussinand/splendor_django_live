@@ -112,6 +112,16 @@ export class Game {
             this.showChooseNobleModal(data.nobles);
         }
 
+        // Gérer les sons pour "prendre 2 jetons" et "prendre 3 jetons"
+        if (data.type === "game_update" && ["prendre_2_jetons", "prendre_3_jetons","reserver_carte" , "reserver_carte_pile","acheter_carte_reservee","acheter_carte"].includes(data.action)) {
+            if (data.sound_effect) {
+                const sound = document.getElementById(`sound-${data.sound_effect}`);
+                if (sound) {
+                    sound.play().catch(err => console.error("Erreur lors de la lecture du son :", err));
+                }
+            }
+        }
+
 
     
         if (data.type === "game_update") {
@@ -146,6 +156,8 @@ export class Game {
                     refreshPlayerTokens(data.joueur, data.jetons);
                     // Mise à jour des nobles acquis
                     updateNoblesAcquis(data.nobles_acquis);
+
+                    
                 }
     
                 if (data.action === "acheter_carte_reservee") {

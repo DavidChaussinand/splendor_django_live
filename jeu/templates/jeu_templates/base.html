@@ -14,7 +14,7 @@
     <!-- Ton propre fichier CSS -->
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
-<body>
+<body >
     {% block header %}
     <header class="">
         <nav class="navbar navbar-expand-lg navbar-light bg-light container-fluid">
@@ -58,6 +58,12 @@
         </nav>
     </header>
     {% endblock %}
+
+    <audio id="background-music" loop>
+        <source src="{% static 'musique/tournoi.mp3' %}" type="audio/mpeg">
+        Votre navigateur ne supporte pas l'audio.
+    </audio>
+    
     
 
     <div class="{% if is_game_page %}game-page{% else %}container mt-4{% endif %}">
@@ -81,6 +87,7 @@
     
 
 {% block scripts %}
+    
 {% endblock %}
 </body>
 </html>
