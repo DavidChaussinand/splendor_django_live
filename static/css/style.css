@@ -1282,3 +1282,11 @@ footer {
     transform: scale(1.05); /* Légèrement plus grand au survol */
     
 }
+
+.btn-startGame:disabled {
+    opacity: 0.5; /* Rend le bouton plus transparent */
+    cursor: not-allowed; /* Montre que le bouton est inactif */
+    pointer-events: none; /* Empêche toute interaction avec le bouton */
+    background-color: #ccc; /* Change la couleur de fond pour renforcer l'effet désactivé */
+    color: #666; /* Change la couleur du texte pour correspondre à l'état désactivé */
+}

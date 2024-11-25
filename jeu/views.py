@@ -361,6 +361,9 @@ class GameView(LoginRequiredMixin, View):
         # Récupérer les joueurs de la partie, ordonnés par leur champ 'order'
         joueurs_ordonnes = JoueurPartie.objects.filter(partie=partie).order_by('order')
 
+        # Récupérer les joueurs actuels
+        joueurs_actuels = partie.joueurs.count()
+        joueurs_requis = partie.nombre_joueurs
 
         # Accéder au plateau de la partie
         plateau = partie.plateau
@@ -418,6 +421,8 @@ class GameView(LoginRequiredMixin, View):
             'cartes_achetees': cartes_achetees,
             'joueurs_ordonnes': joueurs_ordonnes,
             'nobles': nobles,
+            'joueurs_actuels': joueurs_actuels,
+            'joueurs_requis': joueurs_requis,
             'is_game_page': True,
         }
         return render(request, 'jeu_templates/game.html', context)
@@ -475,6 +480,12 @@ class RejoindrePartieView(LoginRequiredMixin, View):
         return redirect('game_view', nom_partie=partie.nom)
 
 
-    
-
-
+class GetPlayerStatusView(View):
+    def get(self, request, nom_partie):
+        partie = get_object_or_404(Partie, nom=nom_partie)
+        joueurs_actuels = partie.joueurs.count()
+        joueurs_requis = partie.nombre_joueurs
+        return JsonResponse({
+            'joueurs_actuels': joueurs_actuels,
+            'joueurs_requis': joueurs_requis
+        })

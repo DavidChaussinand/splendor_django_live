@@ -27,12 +27,12 @@
         </div>
     </div>
     
-    <!-- Modal pour debut de partie -->
     <div id="welcomeModal-startGame" class="modal-overlay-startGame">
         <div class="modal-content-startGame">
             <h1>Bienvenue dans le Game</h1>
             <p>Que les meilleurs sayans gagnent !</p>
-            <button id="startGameButton" class="btn-startGame">Lancer la partie</button>
+            <p id="playerStatus">Joueurs : {{ joueurs_actuels }} / {{ joueurs_requis }}</p>
+            <button id="startGameButton" class="btn-startGame" disabled>Lancer la partie</button>
         </div>
     </div>
     
@@ -406,11 +406,33 @@
     document.addEventListener("DOMContentLoaded", () => {
     const welcomeModal = document.getElementById("welcomeModal-startGame");
     const startGameButton = document.getElementById("startGameButton");
+    const playerStatus = document.getElementById("playerStatus");
     const audio = document.getElementById("background-music");
+
+    const nomPartie = "{{ nom_partie }}"; // Récupérer le nom de la partie depuis le contexte
+
+    // Fonction pour actualiser le statut des joueurs
+    function updatePlayerStatus() {
+        fetch(`/status/${nomPartie}/`)
+            .then(response => response.json())
+            .then(data => {
+                const joueursActuels = data.joueurs_actuels;
+                const joueursRequis = data.joueurs_requis;
+
+                // Mettre à jour le texte de la modale
+                playerStatus.textContent = `Joueurs : ${joueursActuels} / ${joueursRequis}`;
+
+                // Activer le bouton si tous les joueurs sont présents
+                startGameButton.disabled = joueursActuels < joueursRequis;
+            })
+            .catch(err => console.error("Erreur lors de la mise à jour du statut des joueurs :", err));
+    }
+
+    // Actualiser le statut des joueurs toutes les 2 secondes
+    setInterval(updatePlayerStatus, 2000);
 
     // Gérer le clic sur le bouton "Lancer la partie"
     startGameButton.addEventListener("click", () => {
-        // Lancer la musique
         audio.play()
             .then(() => {
                 console.log("Musique de fond démarrée !");
@@ -420,6 +442,21 @@
     });
 });
 
+    document.addEventListener("DOMContentLoaded", () => {
+    const startGameButton = document.getElementById("startGameButton");
+
+    // Exemple d'activation du bouton (lorsque les conditions sont remplies)
+    function checkPlayers(joueursActuels, joueursRequis) {
+        if (joueursActuels === joueursRequis) {
+            startGameButton.disabled = false;
+        } else {
+            startGameButton.disabled = true;
+        }
+    }
+
+    // Appelle cette fonction en passant le nombre actuel et requis
+    checkPlayers(2, 2); // Remplace les valeurs par celles de ton application
+});
 </script>
 
 
