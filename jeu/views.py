@@ -483,9 +483,9 @@ class RejoindrePartieView(LoginRequiredMixin, View):
 class GetPlayerStatusView(View):
     def get(self, request, nom_partie):
         partie = get_object_or_404(Partie, nom=nom_partie)
-        joueurs_actuels = partie.joueurs.count()
-        joueurs_requis = partie.nombre_joueurs
-        return JsonResponse({
-            'joueurs_actuels': joueurs_actuels,
-            'joueurs_requis': joueurs_requis
-        })
+        data = {
+            "joueurs_actuels": partie.joueurs.count(),
+            "joueurs_requis": partie.nombre_joueurs,
+            "status": partie.status,  # Supposons que vous ayez un champ "status" dans votre modèle Partie
+        }
+        return JsonResponse(data)

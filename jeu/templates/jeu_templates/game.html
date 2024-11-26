@@ -10,7 +10,7 @@
 {% block content %}
     <link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}">
 
-
+    <!-- Modal pour defausser jetons -->
     <div class="modal fade modal-slide-down" id="discardTokensModal" tabindex="-1" aria-labelledby="discardTokensModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -27,6 +27,7 @@
         </div>
     </div>
     
+    <!-- Modal pour debut de partie -->
     <div id="welcomeModal-startGame" class="modal-overlay-startGame">
         <div class="modal-content-startGame">
             <h1>Bienvenue dans le Game</h1>
@@ -36,10 +37,6 @@
         </div>
     </div>
     
-    <audio id="background-music" loop>
-        <source src="{% static 'musique/dbz.wav' %}" type="audio/mpeg">
-    </audio>
-
 
     <!-- Modal pour annoncer la fin de partie -->
     <div class="modal fade" id="victoryAnnouncementModal" tabindex="-1" aria-labelledby="victoryAnnouncementModalLabel" aria-hidden="true">
@@ -52,12 +49,11 @@
                     <p id="victoryAnnouncementMessage"></p>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                    <button type="button" class="btn-custom-small" data-bs-dismiss="modal">Fermer</button>
                 </div>
             </div>
         </div>
     </div>
-
 
     <!-- Modal pour les scores finaux -->
     <div class="modal fade" id="finalVictoryModal" tabindex="-1" aria-labelledby="finalVictoryModalLabel" aria-hidden="true"
@@ -73,7 +69,7 @@
             <div class="modal-footer">
                 <!-- Lien vers la page d'accueil -->
                 <p>Merci d'avoir participer : </p>
-                <a class="btn btn-primary" href="{% url 'home' %}"> Retour à l'accueil</a>
+                <a class="btn-custom-small" href="{% url 'home' %}">quitter</a>
             </div>
         </div>
     </div>
@@ -84,6 +80,8 @@
     <audio id="sound-3jetons" src="{% static 'musique/3jetons.wav' %}" preload="auto"></audio>
     <audio id="sound-reserver" src="{% static 'musique/reserve.wav' %}" preload="auto"></audio>
     <audio id="sound-achatCarte" src="{% static 'musique/ok.wav' %}" preload="auto"></audio>
+    <audio id="background-music" loop><source src="{% static 'musique/dbz.wav' %}" type="audio/mpeg"></audio>
+    <audio id="final-music" loop><source src="{% static 'musique/victoire.wav' %}" type="audio/mpeg"></audio>
 
 <div class= "container_splendor">
 
@@ -118,7 +116,7 @@
                     <div class="col-md-2 mb-4">
                         <div class="pile-de-carte">
                             <img src="/static/images/cartes/fond_de_carte_rouge.jpg" class="card-img-pile pile-carte" data-niveau="1" alt="Pile de cartes">
-                            <p>Il reste {{ cartes_pile_niveau_1|length }} carte(s)</p>
+                            <p class="p-size">Il reste {{ cartes_pile_niveau_1|length }} cartes</p>
                         </div>
                     </div>
                     
@@ -140,7 +138,7 @@
                     <div class="col-md-2 mb-4">
                         <div class="pile-de-carte">
                             <img src="/static/images/cartes/fond_de_carte_jaune.jpg" class="card-img-pile" alt="Pile de cartes">
-                            <p>Il reste {{ cartes_pile_niveau_2|length }} carte(s)</p>
+                            <p class="p-size">Il reste {{ cartes_pile_niveau_2|length }} cartes</p>
                         </div>
                     </div>
                     
@@ -162,7 +160,7 @@
                     <div class="col-md-2 mb-4">
                         <div class="pile-de-carte">
                             <img src="/static/images/cartes/fond_de_carte_orange.jpg" class="card-img-pile" alt="Pile de cartes">
-                            <p>Il reste {{ cartes_pile_niveau_3|length }} carte(s)</p>
+                            <p class="p-size">Il reste {{ cartes_pile_niveau_3|length }} cartes</p>
                         </div>
                     </div>
                     
@@ -331,6 +329,8 @@
 
 </div>
 
+
+<!-- Modal pour les cartes achetées du joueur -->
 <div id="carteAcheteeModal" class="modal-overlay">
     <div class="modal-content">
         <h3>Cartes achetées</h3>
@@ -350,7 +350,7 @@
 </div>
 
 
-<!-- In your game.html template -->
+<!-- modal pour choisir un noble -->
 <div id="chooseNobleModal" class="modal fade" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-dialog-centered" role="document">
       <div class="modal-content">

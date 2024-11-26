@@ -79,9 +79,33 @@ export class Game {
         }
 
         if (data.type === "final_scores_announcement") {
-            // Affiche une modal pour montrer les scores finaux
+            console.log("Annonce des scores finaux reçue : ", data.message);
+        
+            // Arrêter la musique de fond
+            const backgroundMusic = document.getElementById("background-music");
+            if (backgroundMusic) {
+                console.log("Arrêt de la musique de fond.");
+                backgroundMusic.pause();
+                backgroundMusic.currentTime = 0; // Réinitialiser la musique
+            } else {
+                console.error("Élément background-music introuvable !");
+            }
+        
+            // Lancer la musique de victoire
+            const finalMusic = document.getElementById("final-music");
+            if (finalMusic) {
+                console.log("Lecture de la musique de victoire.");
+                finalMusic.play()
+                    .then(() => console.log("Musique de victoire démarrée !"))
+                    .catch(err => console.error("Erreur lors du démarrage de la musique de victoire :", err));
+            } else {
+                console.error("Élément final-music introuvable !");
+            }
+        
+            // Afficher la modal des scores finaux
             this.showFinalScoresModal(data.message);
         }
+        
     
     
     

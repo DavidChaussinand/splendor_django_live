@@ -1290,3 +1290,283 @@ footer {
     background-color: #ccc; /* Change la couleur de fond pour renforcer l'effet désactivé */
     color: #666; /* Change la couleur du texte pour correspondre à l'état désactivé */
 }
+
+
+
+
+/******************** RESPONSIVE **********************/
+
+@media (max-width: 1900px) and (max-height: 1300px) {
+    /* Vos styles spécifiques pour cette résolution */
+    .adversaire-mg::before {
+        width: 467px;
+        height: 265px;
+        clip-path: polygon(0px 0%, 281px 0%, 323px 100%, 0 100%);
+    }
+    .adversaire-mg {
+        width: 300px;
+        height: 275px;
+    }
+
+    .cartes-plateau .carte {
+        width: 138px;
+        height: 211px;
+    }
+
+    .btn-custom {
+        
+        width: 75px;
+        height: 75px;
+        line-height: 30px;
+
+    }
+    .btn-small {
+        width: 30px;
+        height: 30px;
+        font-size: 15px;
+        line-height: 30px;
+        
+    }
+    .btn-small_bonus-adversaire {
+        width: 15px;
+        height: 15px;
+        font-size: 11px;
+    }
+
+    .bouton-action {
+        font-weight: 700;
+        font-size: 12px;
+        width: 77px;
+        height: 81px;
+
+    }
+
+    .mg::before {
+        width: 965px;
+        height: 307px;
+        clip-path: polygon(0px 0%, 444px 0%, 520px 114%, 0 100%);
+    }
+    
+    .mg {
+        width: 550px;
+        height: 250px;
+    }
+    .btn-small_bonus {
+    
+        width: 15px;
+        height: 15px;
+        font-size: 12px;
+        margin-top: -18px;
+    }
+
+    .rectangle {
+        width: 244px;
+        height: 49px;
+    }
+    .trapezoid-rectangle {
+        width: 410px;
+        height: 188px;
+        clip-path: polygon(0px -6%, 292px -1%, 324px 200px, 0% 100%);
+    }
+
+    .avatar {
+        width: 63px;
+        height: 64px;
+        border-radius: 50%;
+        top: -11px;
+    }
+
+    .noble-image {
+        width: 161px;
+        height: 120px;}
+    
+    .info-style {
+        color: white;
+        font-size: 16px;
+        margin-top: 10px;
+    }
+
+    .img-carte-reservées {
+        height: 120px;
+        width: 90px;
+        margin-top: 40px;
+        margin-left: 7px;
+        transition: transform 0.3s ease; /* Animation fluide */
+    }
+    
+    .img-carte-reservées:hover {
+        transform: scale(2) translateY(-40px); /* Agrandir l'image */
+        z-index: 10000;
+        
+    }
+
+    .rectangle_player {
+        width: 400px;
+        height: 47px;
+    }   
+
+    .trapezoid-rectangle_player {
+        width: 432px;
+        height: 202px;
+        clip-path: polygon(0px 0%, 400px 0%, 454px 260%, 0 100%);}
+
+    .player_local_layout {
+        margin-top: -200px;
+        margin-left: 67px;
+    }
+    .see-carte-achetée {
+        font-size: 9px;
+        margin-top: 23px;
+        align-self: flex-start;
+        width: 54px;
+        height: 43px;
+    }
+
+    .title {
+        height: 10%;}
+    
+    .noble {
+        width: 160px;}
+
+    .p-size{
+        font-size: 0;
+    }
+
+}
+
+
+@media (min-width: 1901px) and (max-width: 2500px) and (min-height: 1301px) and (max-height: 2300px){
+    /* Vos styles spécifiques pour cette résolution */
+    .adversaire-mg::before {
+        width: 500px;
+        height: 280px;
+        clip-path: polygon(0px 0%, 300px 0%, 350px 100%, 0 100%);
+    }
+    .adversaire-mg {
+        width: 320px;
+        height: 290px;
+    }
+
+    .cartes-plateau .carte {
+        width: 150px;
+        height: 225px;
+    }
+
+    .btn-custom {
+        width: 80px;
+        height: 80px;
+        line-height: 35px;
+    }
+    .btn-small {
+        width: 35px;
+        height: 35px;
+        font-size: 16px;
+        line-height: 35px;
+    }
+    .btn-small_bonus-adversaire {
+        width: 18px;
+        height: 18px;
+        font-size: 12px;
+    }
+
+    .bouton-action {
+        font-weight: 700;
+        font-size: 14px;
+        width: 85px;
+        height: 90px;
+    }
+
+    .mg::before {
+        width: 1000px;
+        height: 325px;
+        clip-path: polygon(0px 0%, 460px 0%, 550px 120%, 0 100%);
+    }
+
+    .mg {
+        width: 580px;
+        height: 270px;
+    }
+    .btn-small_bonus {
+        width: 18px;
+        height: 18px;
+        font-size: 13px;
+        margin-top: -15px;
+    }
+
+    .rectangle {
+        width: 260px;
+        height: 55px;
+    }
+    .trapezoid-rectangle {
+        width: 440px;
+        height: 200px;
+        clip-path: polygon(0px -5%, 315px -1%, 350px 200px, 0% 100%);
+    }
+
+    .avatar {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        top: -10px;
+    }
+
+    .noble-image {
+        width: 170px;
+        height: 130px;
+    }
+
+    .info-style {
+        color: white;
+        font-size: 18px;
+        margin-top: 12px;
+    }
+
+    .img-carte-reservées {
+        height: 130px;
+        width: 100px;
+        margin-top: 35px;
+        margin-left: 10px;
+        transition: transform 0.3s ease;
+    }
+
+    .img-carte-reservées:hover {
+        transform: scale(2) translateY(-40px);
+        z-index: 10000;
+    }
+
+    .rectangle_player {
+        width: 420px;
+        height: 55px;
+    }
+
+    .trapezoid-rectangle_player {
+        width: 460px;
+        height: 220px;
+        clip-path: polygon(0px 0%, 420px 0%, 475px 260%, 0 100%);
+    }
+
+    .player_local_layout {
+        margin-top: -190px;
+        margin-left: 70px;
+    }
+    .see-carte-achetée {
+        font-size: 10px;
+        margin-top: 20px;
+        align-self: flex-start;
+        width: 60px;
+        height: 50px;
+    }
+
+    .title {
+        height: 12%;
+    }
+
+    .noble {
+        width: 170px;
+    }
+
+    .p-size {
+        font-size: 0;
+    }
+}
+

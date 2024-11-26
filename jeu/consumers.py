@@ -451,7 +451,7 @@ class GameConsumer(AsyncWebsocketConsumer):
 
 
 
-    # Nouvelle méthode dans GameConsumer
+   
     async def handle_acheter_carte_reservee(self, carte_id):
         carte = await database_sync_to_async(Carte.objects.get)(id=carte_id)
         joueur_partie = await database_sync_to_async(JoueurPartie.objects.get)(joueur=self.user, partie=self.partie)

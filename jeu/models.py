@@ -210,8 +210,8 @@ class JoueurPartie(models.Model):
             # Retirer les jetons utilisés du joueur
             for couleur, quantite_utilisee in jetons_utilises.items():
                 if quantite_utilisee > 0:
-                    self.jetons[couleur] -= quantite_utilisee
-                    if self.jetons[couleur] == 0:
+                    self.jetons[couleur] = self.jetons.get(couleur, 0) - quantite_utilisee
+                    if self.jetons[couleur] <= 0:
                         del self.jetons[couleur]
 
             # Retirer les jetons jaunes utilisés du joueur
@@ -256,7 +256,7 @@ class JoueurPartie(models.Model):
 
             # Vérifier l'acquisition de nobles
             self.verifier_acquisition_noble()
-
+    
     def acheter_carte_reservee(self, carte, plateau):
         # Vérifier si la carte est bien réservée par le joueur
         if carte not in self.cartes_reservees.all():
@@ -281,12 +281,17 @@ class JoueurPartie(models.Model):
             if jetons_disponibles >= quantite_necessaire:
                 # Assez de jetons pour cette couleur
                 jetons_utilises[couleur] = quantite_necessaire
-                jetons_joueur[couleur] -= quantite_necessaire
+                jetons_joueur[couleur] = jetons_disponibles - quantite_necessaire
+                if jetons_joueur[couleur] == 0:
+                    del jetons_joueur[couleur]
             else:
                 # Pas assez de jetons, utilisation des jetons jaunes
                 quantite_a_completer = quantite_necessaire - jetons_disponibles
                 jetons_utilises[couleur] = jetons_disponibles
-                jetons_joueur[couleur] = 0
+                if jetons_disponibles > 0:
+                    jetons_joueur[couleur] = 0
+                    del jetons_joueur[couleur]
+                # Utiliser des jetons jaunes pour compléter
                 if total_jetons_jaunes_disponibles >= quantite_a_completer:
                     jaune_utilises += quantite_a_completer
                     total_jetons_jaunes_disponibles -= quantite_a_completer
@@ -296,14 +301,15 @@ class JoueurPartie(models.Model):
         # Déduire les jetons du joueur
         for couleur, quantite_utilisee in jetons_utilises.items():
             if quantite_utilisee > 0:
-                self.jetons[couleur] -= quantite_utilisee
-                if self.jetons[couleur] == 0:
+                # Utiliser get avec une valeur par défaut pour éviter KeyError
+                self.jetons[couleur] = self.jetons.get(couleur, 0) - quantite_utilisee
+                if self.jetons[couleur] <= 0:
                     del self.jetons[couleur]
 
         # Retirer les jetons jaunes utilisés du joueur
         if jaune_utilises > 0:
-            self.jetons['jaune'] -= jaune_utilises
-            if self.jetons['jaune'] == 0:
+            self.jetons['jaune'] = self.jetons.get('jaune', 0) - jaune_utilises
+            if self.jetons['jaune'] <= 0:
                 del self.jetons['jaune']
 
         # Sauvegarder les changements de jetons
@@ -331,20 +337,14 @@ class JoueurPartie(models.Model):
 
         # Incrémenter le bonus pour la couleur de la carte achetée
         couleur_bonus = carte.bonus
-        if couleur_bonus in self.bonus:
-            self.bonus[couleur_bonus] += 1
-        else:
-            self.bonus[couleur_bonus] = 1
-
-        
+        self.bonus[couleur_bonus] = self.bonus.get(couleur_bonus, 0) + 1
 
         # Sauvegarder les changements finaux
         self.save()
 
         # Vérifier l'acquisition de nobles
-        self.verifier_acquisition_noble()   
-
-            
+        self.verifier_acquisition_noble()
+      
     def reserver_carte(self, carte, plateau):
         # Vérifier que le joueur n'a pas déjà 3 cartes réservées
         if self.cartes_reservees.count() >= 3:
