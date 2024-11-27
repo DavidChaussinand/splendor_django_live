@@ -1,3 +1,5 @@
 # Ignorer les fichiers de musique dans static/musique
 static/musique/*.wav
 static/musique/*.mp3
+clean_repo/
+splendor_django_live.git/
